@@ -77,6 +77,8 @@ button{font-family:inherit;cursor:pointer;}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--border-subtle);}
 .logout{margin-left:8px;background:var(--surface-sunken);border:0;color:var(--text-muted);font-size:12px;padding:6px 10px;border-radius:var(--radius-pill);cursor:pointer;}
 .logout:hover{background:var(--slate-200);color:var(--text-body);}
+.adminbtn{margin-left:4px;background:var(--blue-500);color:#fff;border:0;font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--radius-pill);text-decoration:none;} /* ปุ่ม Admin (โชว์เฉพาะแอดมิน) */
+.adminbtn:hover{background:var(--blue-600);}
 
 /* Sidebar */
 .sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:0;height:100vh;color:var(--text-on-dark);
@@ -242,6 +244,7 @@ button{font-family:inherit;cursor:pointer;}
       <div class="who">
         <div class="avatar" id="userAvatar"></div>
         <div><b id="userName"></b><span id="userEmail"></span></div>
+        <a class="adminbtn" id="adminBtn" href="admin.html" title="หน้าผู้ดูแลระบบ" style="display:none">Admin</a>
         <button class="logout" id="logoutBtn" title="ออกจากระบบ">ออก</button>
       </div>
     </header>
@@ -441,6 +444,9 @@ function toggleDone(id){
 
 /* ============================================================ 9) ระบบล็อกอิน ============================================================ */
 const SITEM_DOMAIN = "@sitem.co.th";   // โดเมนอีเมลบริษัท
+// อีเมลที่เป็นแอดมิน (เห็นปุ่ม Admin + เข้าหน้า admin.html ได้) — เพิ่ม/ลดรายชื่อได้ที่นี่
+const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];
+const isAdmin = email => ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase());
 // *** วาง OAuth Client ID จาก Google Cloud ตรงนี้ เพื่อเปิดใช้ "Sign in with Google" จริง (ดูคู่มือ) ***
 const GOOGLE_CLIENT_ID = "153619259603-pc7cuamp045984cd1rfpgoefv3j7pnkc.apps.googleusercontent.com";
 
@@ -455,6 +461,7 @@ function showApp(user){
   document.getElementById("userEmail").textContent = user.email;
   const av = document.getElementById("userAvatar");
   av.innerHTML = user.picture ? `<img src="${user.picture}" alt="">` : initialsOf(user.name);
+  document.getElementById("adminBtn").style.display = isAdmin(user.email) ? "inline-block" : "none"; // โชว์ปุ่ม Admin เฉพาะแอดมิน
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("appLayout").classList.add("show");
 }

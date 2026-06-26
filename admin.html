@@ -83,11 +83,9 @@ tr:hover td{background:var(--slate-25);}
 <div class="gate" id="gate">
   <div class="gate-card">
     <img src="sitem-mark.png" alt="" style="width:48px;height:48px;border-radius:11px;background:#fff;padding:4px;box-shadow:var(--shadow-sm)" />
-    <h2>Admin Dashboard</h2>
-    <p>กรอกรหัสผ่านแอดมินเพื่อดูคะแนนผู้เรียน</p>
-    <input id="codeInput" type="password" placeholder="รหัสผ่านแอดมิน" />
-    <p class="err" id="codeErr" style="display:none">รหัสผ่านไม่ถูกต้อง</p>
-    <button class="btn" id="codeBtn">เข้าสู่ระบบ</button>
+    <h2 id="gateTitle">Admin Dashboard</h2>
+    <p id="gateMsg">กำลังตรวจสอบสิทธิ์...</p>
+    <a class="btn" id="gateLogin" href="index.html" style="display:none;text-decoration:none">ไปหน้าเข้าสู่ระบบ</a>
   </div>
 </div>
 
@@ -114,8 +112,9 @@ tr:hover td{background:var(--slate-25);}
 /* ============================================================
    ตั้งค่า ADMIN — แก้ 2 จุดนี้
    ============================================================ */
-// 1) รหัสผ่านแอดมิน (เปลี่ยนเป็นอะไรก็ได้ที่จำได้)
-const ADMIN_CODE = "sitem2026";
+// 1) รายชื่ออีเมลแอดมิน (ต้องตรงกับใน index.html) — คนเหล่านี้เท่านั้นที่เปิดหน้านี้ได้
+const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];
+function isAdmin(email){ return ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase()); }
 
 // 2) แหล่งข้อมูลคะแนน = ลิงก์ "เผยแพร่เป็น CSV" ของ Google Sheet ที่ผูกกับฟอร์มแต่ละบท
 //    (วิธีเอาลิงก์: ในชีต > ไฟล์ > แชร์ > เผยแพร่ไปยังเว็บ > เลือกชีต > CSV > เผยแพร่)
@@ -125,23 +124,24 @@ const SOURCES = [
   // { chapter:"UPS", url:"https://docs.google.com/.../pub?output=csv" },
 ];
 
-/* ============================================================ ด่านรหัสผ่าน ============================================================ */
-function tryCode(){
-  if(document.getElementById("codeInput").value === ADMIN_CODE){
-    sessionStorage.setItem("sitem_admin","1");
+/* ============================================================ ด่านสิทธิ์: ต้องล็อกอินเป็นแอดมิน ============================================================ */
+function checkAccess(){
+  let u=null; try{ u=JSON.parse(localStorage.getItem("sitem_user")); }catch(e){}
+  if(u && isAdmin(u.email)){
     document.getElementById("gate").classList.add("hidden");
     document.getElementById("app").style.display="block";
     loadAll();
-  } else {
-    document.getElementById("codeErr").style.display="block";
+  } else if(u){   // ล็อกอินแล้วแต่ไม่ใช่แอดมิน
+    document.getElementById("gateTitle").textContent="ไม่มีสิทธิ์เข้าถึง";
+    document.getElementById("gateMsg").textContent="บัญชี "+u.email+" ไม่ใช่ผู้ดูแลระบบ";
+    var g=document.getElementById("gateLogin"); g.style.display="inline-block"; g.textContent="กลับหน้าเรียน";
+  } else {        // ยังไม่ล็อกอิน
+    document.getElementById("gateTitle").textContent="กรุณาเข้าสู่ระบบก่อน";
+    document.getElementById("gateMsg").textContent="ต้องเข้าสู่ระบบด้วยบัญชีแอดมินก่อนจึงจะดูหน้านี้ได้";
+    document.getElementById("gateLogin").style.display="inline-block";
   }
 }
-document.getElementById("codeBtn").onclick = tryCode;
-document.getElementById("codeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") tryCode(); });
-if(sessionStorage.getItem("sitem_admin")==="1"){
-  document.getElementById("gate").classList.add("hidden");
-  document.getElementById("app").style.display="block";
-}
+checkAccess();
 
 /* ============================================================ ตัวแปรเก็บข้อมูล ============================================================ */
 let ROWS = [];   // ทุกแถวที่รวมจากทุกบท
@@ -268,8 +268,7 @@ function render(){
 
 document.getElementById("search").addEventListener("input", render);
 document.getElementById("reloadBtn").addEventListener("click", loadAll);
-// ถ้าผ่านด่านมาแล้ว (เคยกรอกรหัสในแท็บนี้) โหลดเลย
-if(sessionStorage.getItem("sitem_admin")==="1") loadAll();
+
 </script>
 </body>
 </html>
