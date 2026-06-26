@@ -174,20 +174,52 @@ button{font-family:inherit;cursor:pointer;}
 
 /* ============================================================ 5) RESPONSIVE ============================================================ */
 @media(max-width:880px){
-  .layout.show{flex-direction:column;}
-  .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px;}
-  .brand{padding:0;margin-right:auto;}
-  .nav-label,.side-progress{display:none;}
-  .nav{flex-direction:row;flex-wrap:wrap;width:100%;margin-top:10px;gap:6px;}
-  .nav.scroll{overflow:visible;}
-  .nav-item{width:auto;}.nav-item .ni-text{max-width:130px;}
-  .topbar{flex-wrap:wrap;height:auto;padding:12px 16px;gap:10px;}
-  .page-title{width:100%;}
-  .search{max-width:none;margin-left:0;order:3;width:100%;}
-  .content{padding:18px 16px 40px;}
+  .hamb{display:inline-flex;}
+  .sidebar{position:fixed;top:0;left:0;width:248px;height:100vh;z-index:55;transform:translateX(-100%);transition:transform var(--dur-base);box-shadow:var(--shadow-lg);}
+  .sidebar.open{transform:translateX(0);}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:54;}
+  .topbar{padding:0 14px;gap:10px;}
+  .page-title{display:none;}
+  .search{max-width:none;}
+  .who b,.who span{display:none;}
+  .content{padding:18px 14px 40px;}
   .product-head h2{font-size:22px;}
   .login-card{max-width:100%;}
+  .dash-hero{padding:20px;}
+  .dash-hero .ring2{width:80px;height:80px;margin-left:0;}
 }
+/* เมนูจัดกลุ่มหมวด */
+.nav-group{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan-300);font-weight:700;padding:12px 10px 4px;}
+.nav-group:first-child{padding-top:2px;}
+/* แดชบอร์ดหน้าแรก */
+.dash-hero{background:linear-gradient(135deg,var(--blue-800),var(--blue-500));color:#fff;border-radius:var(--radius-lg);padding:26px 28px;box-shadow:var(--shadow-brand);display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.dash-hero .ring2{width:96px;height:96px;flex-shrink:0;margin-left:auto;}
+.dash-hero .hi{flex:1;min-width:220px;}
+.dash-hero h2{margin:4px 0 6px;font-size:26px;font-weight:700;}
+.dash-hero p{margin:0 0 14px;color:#dbe9f7;font-size:14px;}
+.dash-hero .eyebrow{color:var(--cyan-300);}
+.dash-hero .btn{background:#fff;color:var(--blue-700);}
+.dash-hero .btn:hover{background:#eaf3fb;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+.stat{background:#fff;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.stat .si{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.stat .si svg{width:22px;height:22px;}
+.stat b{display:block;font-size:24px;font-weight:700;color:var(--text-strong);font-family:var(--font-mono);line-height:1.1;}
+.stat span{font-size:12.5px;color:var(--text-muted);}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;}
+.cat-card{background:#fff;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px;cursor:pointer;transition:transform var(--dur-base),box-shadow var(--dur-base);text-align:left;width:100%;font-family:inherit;}
+.cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.cat-card .ch{display:flex;align-items:center;gap:12px;}
+.cat-card .ci{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.cat-card .ci svg{width:21px;height:21px;}
+.cat-card b{font-size:15px;color:var(--text-strong);}
+.cat-card .cmeta{font-size:12.5px;color:var(--text-muted);}
+.cat-bar{height:6px;border-radius:99px;background:var(--slate-100);overflow:hidden;margin-top:12px;}
+.cat-bar i{display:block;height:100%;background:var(--cyan-500);border-radius:99px;transition:width var(--dur-slow);}
+/* ปุ่มเมนูมือถือ */
+.hamb{display:none;background:transparent;border:0;color:var(--text-strong);padding:6px;border-radius:8px;}
+.hamb svg{width:24px;height:24px;}
+.scrim{display:none;}
 .empty{color:var(--text-faint);font-size:14px;padding:18px;text-align:center;}
 </style>
 </head>
@@ -216,6 +248,7 @@ button{font-family:inherit;cursor:pointer;}
 
 <!-- ===== แอปหลัก ===== -->
 <div class="layout" id="appLayout">
+  <div class="scrim" id="scrim"></div>
   <aside class="sidebar">
     <div class="brand">
       <img src="sitem-mark.png" alt="SITEM" />
@@ -223,6 +256,10 @@ button{font-family:inherit;cursor:pointer;}
     </div>
     <!-- แท็บคลังเอกสาร (อยู่บนสุด) -->
     <nav class="nav">
+      <button class="nav-item" id="homeBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10"/></svg>
+        <span class="ni-text">หน้าแรก</span>
+      </button>
       <button class="nav-item" id="libBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
         <span class="ni-text">คลังเอกสาร</span>
@@ -239,6 +276,7 @@ button{font-family:inherit;cursor:pointer;}
 
   <div class="main">
     <header class="topbar">
+      <button class="hamb" id="hambBtn" title="เมนู" aria-label="เมนู"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="page-title"><b>หน้าเรียนรู้ผลิตภัณฑ์</b><span>Product Training &amp; E-Learning Portal</span></div>
       <div class="search">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.3-4.3"/></svg>
@@ -486,6 +524,7 @@ const ICONS = {
   play:'<path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/>',
   check:'<path d="M20 6L9 17l-5-5"/>',
   arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  home:'<path d="M3 11l9-8 9 8M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10"/>',
 };
 const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
 
@@ -493,6 +532,8 @@ const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke=
 const LIBRARY_URL = "https://forworkbyarm.github.io/LibraryByArm/";  // ลิงก์คลังเอกสาร
 let currentId = PRODUCTS[0].id;
 let inLibrary = false;
+let inHome = true;
+const CAT_ORDER = [["ONBOARDING","เริ่มต้น"],["POWER","ระบบไฟฟ้า (Power)"],["COOLING","ระบบทำความเย็น (Cooling)"],["MONITORING","มอนิเตอร์ & บริหารจัดการ"],["FIRE & DETECTION","ดับเพลิง & ตรวจจับ"],["SECURITY","ความปลอดภัย (Security)"]];
 const passed = {};                 // สถานะ "เรียนจบ" รายบท (โหลดจาก localStorage รายคน)
 const getProduct = id => PRODUCTS.find(p=>p.id===id);
 
@@ -534,27 +575,33 @@ function renderNav(keyword=""){
   const k = keyword.trim().toLowerCase();
   const list = PRODUCTS.filter(p=>p.name.toLowerCase().includes(k)||p.tagline.toLowerCase().includes(k));
   document.getElementById("noResult").style.display = list.length ? "none" : "block";
-  document.getElementById("libBtn").classList.toggle("active", inLibrary);  // ไฮไลต์แท็บคลังเอกสาร
+  document.getElementById("homeBtn").classList.toggle("active", inHome);
+  document.getElementById("libBtn").classList.toggle("active", inLibrary);
   nav.innerHTML = "";
-  list.forEach(p=>{
-    const btn = document.createElement("button");
-    btn.className = "nav-item"+((!inLibrary && p.id===currentId)?" active":"");
-    btn.innerHTML = `${svg(p.icon)}<span class="ni-text">${p.name}</span><span class="ni-dot${passed[p.id]?' done':''}"></span>`;
-    btn.onclick = ()=>selectProduct(p.id);
-    nav.appendChild(btn);
+  CAT_ORDER.forEach(([cat,label])=>{
+    const items = list.filter(p=>p.eyebrow===cat);
+    if(!items.length) return;
+    const h=document.createElement("div"); h.className="nav-group"; h.textContent=label; nav.appendChild(h);
+    items.forEach(p=>{
+      const btn=document.createElement("button");
+      btn.className="nav-item"+((!inHome && !inLibrary && p.id===currentId)?" active":"");
+      btn.innerHTML=`${svg(p.icon)}<span class="ni-text">${p.name}</span><span class="ni-dot${passed[p.id]?' done':''}"></span>`;
+      btn.onclick=()=>selectProduct(p.id);
+      nav.appendChild(btn);
+    });
   });
 }
 
 /* ============================================================ 6) เลือกผลิตภัณฑ์ / เปิดคลังเอกสาร ============================================================ */
 function selectProduct(id){
-  inLibrary = false;
+  inLibrary = false; inHome = false; closeMenu();
   currentId = id;
   renderNav(document.getElementById("searchInput").value);
   renderContent();
   document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function showLibrary(){
-  inLibrary = true;
+  inLibrary = true; inHome = false; closeMenu();
   renderNav(document.getElementById("searchInput").value);
   document.getElementById("contentArea").innerHTML = `
     <div class="card fade-in" style="padding:0;overflow:hidden">
@@ -567,6 +614,52 @@ function showLibrary(){
   document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
 }
 document.getElementById("libBtn").onclick = showLibrary;
+document.getElementById("homeBtn").onclick = showHome;
+function closeMenu(){ const sb=document.querySelector(".sidebar"); if(sb) sb.classList.remove("open"); const sc=document.getElementById("scrim"); if(sc) sc.classList.remove("show"); }
+function showHome(){
+  inHome=true; inLibrary=false; closeMenu();
+  renderNav(document.getElementById("searchInput").value);
+  const total=PRODUCTS.length, done=Object.values(passed).filter(Boolean).length;
+  const pct=total?Math.round(done/total*100):0;
+  const firstTodo=PRODUCTS.find(p=>!passed[p.id])||PRODUCTS[0];
+  const name=currentUser?((currentUser.name||"").split(" ")[0]||currentUser.name):"";
+  const cats=CAT_ORDER.filter(c=>c[0]!=="ONBOARDING").map(([c,label])=>{
+    const its=PRODUCTS.filter(p=>p.eyebrow===c);
+    const d=its.filter(p=>passed[p.id]).length;
+    return {label,icon:its[0]?its[0].icon:"box",color:its[0]?its[0].color:"var(--blue-500)",total:its.length,done:d,cp:its.length?Math.round(d/its.length*100):0,first:its[0]?its[0].id:""};
+  });
+  document.getElementById("contentArea").innerHTML = `
+    <div class="stack fade-in">
+      <div class="dash-hero">
+        <div class="hi">
+          <div class="eyebrow">SITEM ACADEMY</div>
+          <h2>สวัสดี, ${name} 👋</h2>
+          <p>คุณเรียนจบแล้ว ${done} จาก ${total} หลักสูตร — มาเรียนต่อกันเลย</p>
+          <button class="btn" onclick="selectProduct('${firstTodo.id}')">${svg("arrow")} เรียนต่อ: ${firstTodo.name}</button>
+        </div>
+        <svg class="ring2" viewBox="0 0 36 36">
+          <path d="M18 2.1a15.9 15.9 0 110 31.8 15.9 15.9 0 010-31.8" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="3"/>
+          <path d="M18 2.1a15.9 15.9 0 110 31.8 15.9 15.9 0 010-31.8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="${pct},100"/>
+          <text x="18" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="var(--font-mono)">${pct}%</text>
+        </svg>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="si" style="background:var(--green-500)">${svg("check")}</div><div><b>${done}</b><span>บทที่เรียนจบ</span></div></div>
+        <div class="stat"><div class="si" style="background:var(--amber-500)">${svg("play")}</div><div><b>${total-done}</b><span>ยังไม่เรียน</span></div></div>
+        <div class="stat"><div class="si" style="background:var(--cyan-500)">${svg("chart")}</div><div><b>${cats.length}</b><span>หมวดผลิตภัณฑ์</span></div></div>
+        <div class="stat"><div class="si" style="background:var(--blue-500)">${svg("box")}</div><div><b>${total}</b><span>ผลิตภัณฑ์ทั้งหมด</span></div></div>
+      </div>
+      <div>
+        <h3 class="section-title" style="margin-bottom:14px">หมวดผลิตภัณฑ์</h3>
+        <div class="cat-grid">
+          ${cats.map(c=>`<button class="cat-card" onclick="selectProduct('${c.first}')">
+            <div class="ch"><div class="ci" style="background:${c.color}">${svg(c.icon)}</div><div><b>${c.label}</b><div class="cmeta">เรียนจบ ${c.done}/${c.total} บท</div></div></div>
+            <div class="cat-bar"><i style="width:${c.cp}%"></i></div>
+          </button>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
 
 /* ============================================================ 7) เนื้อหาหลัก ============================================================ */
 function renderContent(){
@@ -648,8 +741,7 @@ function showApp(user){
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("appLayout").classList.add("show");
   loadProgress();                 // โหลดความคืบหน้าของผู้ใช้คนนี้
-  inLibrary = false;
-  renderOverall(); renderNav(); renderContent();
+  renderOverall(); showHome();
 }
 function logout(){
   localStorage.removeItem("sitem_user");
@@ -674,6 +766,8 @@ document.getElementById("loginForm").addEventListener("submit",e=>{
   showApp(user);
 });
 document.getElementById("logoutBtn").addEventListener("click", logout);
+document.getElementById("hambBtn").addEventListener("click",()=>{const sb=document.querySelector(".sidebar");const open=!sb.classList.contains("open");sb.classList.toggle("open",open);document.getElementById("scrim").classList.toggle("show",open);});
+document.getElementById("scrim").addEventListener("click",closeMenu);
 
 function decodeJwt(t){
   try{ return JSON.parse(decodeURIComponent(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""))); }
@@ -702,7 +796,7 @@ if(window.google && google.accounts) initGoogle();
 
 /* ============================================================ 10) EVENTS + INIT ============================================================ */
 document.getElementById("searchInput").addEventListener("input",e=>renderNav(e.target.value));
-renderNav(); renderOverall(); renderContent();
+renderNav(); renderOverall(); showHome();
 const _saved = localStorage.getItem("sitem_user");
 if(_saved){ try{ showApp(JSON.parse(_saved)); }catch(e){} }
 </script>
