@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SITEM Academy — ระบบเรียนรู้ผลิตภัณฑ์และอุปกรณ์</title>
+<meta name="description" content="SITEM Academy — ระบบเรียนรู้ผลิตภัณฑ์และอุปกรณ์ Data Center สำหรับพนักงาน SITEM" />
+<link rel="icon" href="sitem-mark.png" />
+<meta property="og:title" content="SITEM Academy" />
+<meta property="og:description" content="ระบบเรียนรู้ผลิตภัณฑ์และอุปกรณ์ของ SITEM" />
+<meta property="og:image" content="sitem-mark.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -170,6 +175,9 @@ button{font-family:inherit;cursor:pointer;}
 .btn-done:hover{background:#d6f0e0;}
 .quiz-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px;}
 .quiz-nolink{color:var(--text-faint);font-size:14px;}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
+.ni-soon{font-size:9px;background:rgba(255,255,255,.16);color:rgba(255,255,255,.75);padding:2px 6px;border-radius:99px;flex-shrink:0;white-space:nowrap;}
+.soon-box{background:var(--slate-50);border:1px dashed var(--border-default);border-radius:var(--radius-md);padding:42px 20px;text-align:center;color:var(--text-muted);font-size:14px;}
 .lib-frame{width:100%;height:76vh;border:0;display:block;}
 
 /* ============================================================ 5) RESPONSIVE ============================================================ */
@@ -289,7 +297,7 @@ button{font-family:inherit;cursor:pointer;}
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.3-4.3"/></svg>
         <input id="searchInput" type="text" placeholder="ค้นหาผลิตภัณฑ์ / อุปกรณ์..." autocomplete="off" />
       </div>
-      <button class="bell" title="การแจ้งเตือน">
+      <button class="bell" title="การแจ้งเตือน" aria-label="การแจ้งเตือน">
         <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span class="dot"></span>
       </button>
@@ -550,6 +558,10 @@ let inHome = true;
 const CAT_ORDER = [["ONBOARDING","เริ่มต้น"],["POWER","ระบบไฟฟ้า (Power)"],["COOLING","ระบบทำความเย็น (Cooling)"],["MONITORING","มอนิเตอร์ & บริหารจัดการ"],["FIRE & DETECTION","ดับเพลิง & ตรวจจับ"],["SECURITY","ความปลอดภัย (Security)"]];
 const passed = {};                 // สถานะ "เรียนจบ" รายบท (โหลดจาก localStorage รายคน)
 const getProduct = id => PRODUCTS.find(p=>p.id===id);
+const PLACEHOLDER_VIDEO = "ScMzIvxBSi4";              // วิดีโอตัวอย่าง = ถือว่ายังไม่มีคลิปจริง
+const hasVideo = p => p.videoId && p.videoId !== PLACEHOLDER_VIDEO;
+const hasQuiz  = p => p.quizLink && p.quizLink !== "#";
+const isReady  = p => hasVideo(p) || hasQuiz(p) || (p.docs && p.docs.length>0);
 
 function videoEmbed(p){
   const v = (p.videoId || p.video || "").trim();
@@ -607,7 +619,9 @@ function renderNav(keyword=""){
     items.forEach(p=>{
       const btn=document.createElement("button");
       btn.className="nav-item"+((!inHome && !inLibrary && p.id===currentId)?" active":"");
-      btn.innerHTML=`${svg(p.icon)}<span class="ni-text">${p.name}</span><span class="ni-dot${passed[p.id]?' done':''}"></span>`;
+      const tag = passed[p.id] ? '<span class="ni-dot done" title="เรียนจบแล้ว"></span>'
+        : (!isReady(p) ? '<span class="ni-soon">เร็วๆนี้</span>' : '<span class="ni-dot"></span>');
+      btn.innerHTML=`${svg(p.icon)}<span class="ni-text">${p.name}</span>${tag}`;
       btn.onclick=()=>selectProduct(p.id);
       nav.appendChild(btn);
     });
@@ -688,6 +702,16 @@ function renderContent(){
   const p = getProduct(currentId);
   const idx = PRODUCTS.findIndex(x=>x.id===currentId);
   const prev = PRODUCTS[idx-1], next = PRODUCTS[idx+1];
+  const videoCard = hasVideo(p)
+    ? `<div class="card">
+        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
+        <div class="video-wrap"><iframe src="${videoEmbed(p)}" title="วิดีโอสอน ${p.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+        <div class="video-meta"><span class="pill">MODULE</span> หลักสูตร ${p.name} · ดูจบแล้วทำแบบทดสอบด้านล่าง</div>
+      </div>`
+    : `<div class="card">
+        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
+        <div class="soon-box">วิดีโอบทนี้อยู่ระหว่างจัดทำ • เร็วๆ นี้</div>
+      </div>`;
   const howto = p.howto.map((s,i)=>`<li><span class="num">${i+1}</span><span class="t">${s}</span></li>`).join("");
   const docsCard = (p.docs && p.docs.length) ? `
       <div class="card">
@@ -707,13 +731,7 @@ function renderContent(){
         <h3 class="section-title" style="margin-top:22px">วิธีการใช้งานเบื้องต้น</h3>
         <ul class="howto">${howto}</ul>
       </div>
-      <div class="card">
-        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
-        <div class="video-wrap">
-          <iframe src="${videoEmbed(p)}" title="วิดีโอสอน ${p.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-        <div class="video-meta"><span class="pill">MODULE</span> หลักสูตร ${p.name} · ดูจบแล้วทำแบบทดสอบด้านล่าง</div>
-      </div>
+      ${videoCard}
       ${docsCard}
       <div class="card">
         <div class="eyebrow">POST-TEST</div>
@@ -740,9 +758,16 @@ function doneBtn(p){
     ? `<button class="btn btn-done" onclick="toggleDone('${p.id}')">${svg("check")} เรียนจบบทนี้แล้ว (กดเพื่อยกเลิก)</button>`
     : `<button class="btn btn-ghost" onclick="toggleDone('${p.id}')">ทำเครื่องหมายว่าเรียนจบ</button>`;
 }
+function syncProgress(id){    // ส่งความคืบหน้าขึ้น Google Sheet ผ่าน Apps Script (ถ้าตั้งค่าไว้)
+  if(!APPS_SCRIPT_URL || !currentUser) return;
+  const p=getProduct(id);
+  try{ fetch(APPS_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({email:currentUser.email,name:currentUser.name,productId:id,product:p?p.name:id,done:!!passed[id]})}); }catch(e){}
+}
 function toggleDone(id){
   passed[id] = !passed[id];
-  saveProgress();                 // บันทึกความคืบหน้ารายคน
+  saveProgress();                 // บันทึกในเครื่อง
+  syncProgress(id);               // ส่งขึ้นส่วนกลาง (ถ้ามี Apps Script)
   renderOverall();
   renderNav(document.getElementById("searchInput").value);
   renderContent();
@@ -753,6 +778,8 @@ const SITEM_DOMAIN = "@sitem.co.th";
 const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];   // อีเมลแอดมิน (เพิ่ม/ลดได้)
 const isAdmin = email => ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase());
 const GOOGLE_CLIENT_ID = "153619259603-pc7cuamp045984cd1rfpgoefv3j7pnkc.apps.googleusercontent.com";
+// *** วาง URL ของ Apps Script Web App ที่นี่ เพื่อเก็บความคืบหน้ารวมศูนย์ (ดูคู่มือ) ว่างไว้ = เก็บเฉพาะในเครื่อง ***
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxb28ROsVGon-io4s6O1bEKBDnnTuRtAQf8y1o3SxPcppjHrrHLLTWQnRvsOPStBxna/exec";
 
 let currentUser = null;
 function initialsOf(name){
@@ -789,7 +816,7 @@ document.getElementById("loginForm").addEventListener("submit",e=>{
     return;
   }
   err.textContent = "";
-  const user = { name, email };
+  const user = { name, email, verified:false };
   localStorage.setItem("sitem_user", JSON.stringify(user));
   showApp(user);
 });
@@ -808,7 +835,7 @@ function handleGoogleCredential(resp){
     document.getElementById("loginErr").textContent = "ต้องเข้าด้วยบัญชี " + SITEM_DOMAIN + " เท่านั้น";
     return;
   }
-  const user = { name: info.name || email, email, picture: info.picture || "" };
+  const user = { name: info.name || email, email, picture: info.picture || "", verified:true };
   localStorage.setItem("sitem_user", JSON.stringify(user));
   showApp(user);
 }

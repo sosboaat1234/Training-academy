@@ -127,18 +127,23 @@ const SOURCES = [
 /* ============================================================ ด่านสิทธิ์: ต้องล็อกอินเป็นแอดมิน ============================================================ */
 function checkAccess(){
   let u=null; try{ u=JSON.parse(localStorage.getItem("sitem_user")); }catch(e){}
-  if(u && isAdmin(u.email)){
+  const g=document.getElementById("gateLogin");
+  if(u && u.verified && isAdmin(u.email)){        // ต้องเข้าผ่าน Google (verified) + เป็นแอดมิน
     document.getElementById("gate").classList.add("hidden");
     document.getElementById("app").style.display="block";
     loadAll();
-  } else if(u){   // ล็อกอินแล้วแต่ไม่ใช่แอดมิน
+  } else if(u && isAdmin(u.email) && !u.verified){ // เป็นแอดมินแต่เข้าด้วยการกรอกอีเมล
+    document.getElementById("gateTitle").textContent="ต้องยืนยันตัวตนด้วย Google";
+    document.getElementById("gateMsg").textContent="ผู้ดูแลระบบต้องเข้าสู่ระบบด้วยปุ่ม Sign in with Google เท่านั้น เพื่อความปลอดภัย";
+    g.style.display="inline-block"; g.textContent="ไปหน้าเข้าสู่ระบบ";
+  } else if(u){                                    // ล็อกอินแล้วแต่ไม่ใช่แอดมิน
     document.getElementById("gateTitle").textContent="ไม่มีสิทธิ์เข้าถึง";
     document.getElementById("gateMsg").textContent="บัญชี "+u.email+" ไม่ใช่ผู้ดูแลระบบ";
-    var g=document.getElementById("gateLogin"); g.style.display="inline-block"; g.textContent="กลับหน้าเรียน";
-  } else {        // ยังไม่ล็อกอิน
+    g.style.display="inline-block"; g.textContent="กลับหน้าเรียน";
+  } else {                                         // ยังไม่ล็อกอิน
     document.getElementById("gateTitle").textContent="กรุณาเข้าสู่ระบบก่อน";
-    document.getElementById("gateMsg").textContent="ต้องเข้าสู่ระบบด้วยบัญชีแอดมินก่อนจึงจะดูหน้านี้ได้";
-    document.getElementById("gateLogin").style.display="inline-block";
+    document.getElementById("gateMsg").textContent="ต้องเข้าสู่ระบบด้วยบัญชีแอดมิน (ผ่าน Google) ก่อนจึงจะดูหน้านี้ได้";
+    g.style.display="inline-block";
   }
 }
 checkAccess();
