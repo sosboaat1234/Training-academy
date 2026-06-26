@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITEM Academy — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ===== โทนแบรนด์ SITEM ===== */
+:root{
+  --blue-500:#0e7cc0; --blue-600:#0a66a6; --blue-700:#0a558c; --blue-800:#073f6b;
+  --cyan-400:#4bc3d9; --cyan-500:#28aecb;
+  --slate-0:#fff; --slate-25:#fafbfd; --slate-50:#f4f6fa; --slate-100:#e9edf4; --slate-200:#d7dde8;
+  --slate-400:#8b97ab; --slate-500:#647084; --slate-700:#353f50; --slate-900:#131923;
+  --green-500:#16a35a; --green-600:#128048; --amber-600:#b86d0c; --red-600:#b22a2a;
+  --font-sans:"IBM Plex Sans Thai",system-ui,sans-serif; --font-mono:"IBM Plex Mono",monospace;
+  --radius-md:10px; --radius-lg:14px;
+  --shadow-sm:0 1px 3px rgba(19,25,35,.08),0 1px 2px rgba(19,25,35,.04);
+  --shadow-lg:0 12px 28px rgba(19,25,35,.12);
+  --ring:0 0 0 3px rgba(14,124,192,.30);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-sans);background:var(--slate-50);color:var(--slate-700);}
+.mono{font-family:var(--font-mono);}
+
+/* Topbar */
+.top{background:linear-gradient(160deg,var(--blue-800),var(--blue-600));color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px;}
+.top img{width:38px;height:38px;border-radius:9px;background:#fff;padding:4px;}
+.top .t b{font-size:17px;font-weight:700;letter-spacing:.02em;}
+.top .t span{display:block;font-size:12px;color:var(--cyan-400);}
+.top .sp{flex:1;}
+.top a.home{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,.14);padding:7px 14px;border-radius:999px;}
+.top a.home:hover{background:rgba(255,255,255,.24);}
+
+.wrap{max-width:1100px;margin:0 auto;padding:24px;}
+
+/* การ์ดสรุป */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+.tile{background:#fff;border:1px solid var(--slate-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px;}
+.tile b{display:block;font-size:30px;font-weight:700;color:var(--blue-800);font-family:var(--font-mono);}
+.tile span{font-size:13px;color:var(--slate-500);}
+
+/* แถบเครื่องมือ */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+.toolbar input{flex:1;min-width:200px;border:1px solid var(--slate-200);background:#fff;border-radius:var(--radius-md);padding:10px 12px;font-size:14px;font-family:inherit;}
+.toolbar input:focus{outline:0;box-shadow:var(--ring);border-color:var(--blue-500);}
+.btn{border:0;background:var(--blue-500);color:#fff;font-weight:600;font-size:14px;padding:10px 16px;border-radius:var(--radius-md);cursor:pointer;font-family:inherit;}
+.btn:hover{background:var(--blue-600);}
+.btn.sec{background:var(--slate-100);color:var(--slate-700);}
+.btn.sec:hover{background:var(--slate-200);}
+
+/* ตาราง */
+.card{background:#fff;border:1px solid var(--slate-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--slate-100);}
+th{background:var(--slate-25);color:var(--slate-500);font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;}
+tr:hover td{background:var(--slate-25);}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;font-family:var(--font-mono);}
+.b-pass{background:#e7f7ee;color:var(--green-600);}
+.b-fail{background:#fdf3e2;color:var(--amber-600);}
+.b-plain{background:var(--slate-100);color:var(--slate-700);}
+.muted{color:var(--slate-400);}
+.note{background:#fff;border:1px dashed var(--slate-200);border-radius:var(--radius-lg);padding:28px;text-align:center;color:var(--slate-500);}
+.note code{background:var(--slate-100);padding:2px 6px;border-radius:5px;font-family:var(--font-mono);font-size:13px;}
+.err{color:var(--red-600);font-size:13px;margin-top:8px;}
+
+/* ด่านรหัสผ่านแอดมิน */
+.gate{position:fixed;inset:0;background:linear-gradient(160deg,var(--blue-800),var(--blue-600));display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;}
+.gate.hidden{display:none;}
+.gate-card{background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);padding:32px;max-width:340px;width:100%;text-align:center;}
+.gate-card h2{margin:10px 0 4px;font-size:19px;color:var(--slate-900);}
+.gate-card p{font-size:13px;color:var(--slate-500);margin:0 0 16px;}
+.gate-card input{width:100%;border:1px solid var(--slate-200);border-radius:var(--radius-md);padding:11px 13px;font-size:15px;font-family:inherit;text-align:center;}
+.gate-card input:focus{outline:0;box-shadow:var(--ring);border-color:var(--blue-500);}
+.gate-card .btn{width:100%;margin-top:14px;}
+</style>
+</head>
+<body>
+
+<!-- ===== ด่านรหัสผ่านแอดมิน ===== -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <img src="sitem-mark.png" alt="" style="width:48px;height:48px;border-radius:11px;background:#fff;padding:4px;box-shadow:var(--shadow-sm)" />
+    <h2>Admin Dashboard</h2>
+    <p>กรอกรหัสผ่านแอดมินเพื่อดูคะแนนผู้เรียน</p>
+    <input id="codeInput" type="password" placeholder="รหัสผ่านแอดมิน" />
+    <p class="err" id="codeErr" style="display:none">รหัสผ่านไม่ถูกต้อง</p>
+    <button class="btn" id="codeBtn">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- ===== หน้า Admin ===== -->
+<div id="app" style="display:none">
+  <div class="top">
+    <img src="sitem-mark.png" alt="SITEM" />
+    <div class="t"><b>Admin Dashboard</b><span>SITEM ACADEMY — ความคืบหน้าผู้เรียน</span></div>
+    <div class="sp"></div>
+    <a class="home" href="index.html">← กลับหน้าเรียน</a>
+  </div>
+
+  <div class="wrap">
+    <div class="tiles" id="tiles"></div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="ค้นหาชื่อ / อีเมล / บท..." />
+      <button class="btn sec" id="reloadBtn">รีโหลดข้อมูล</button>
+    </div>
+    <div class="card" id="tableCard"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ตั้งค่า ADMIN — แก้ 2 จุดนี้
+   ============================================================ */
+// 1) รหัสผ่านแอดมิน (เปลี่ยนเป็นอะไรก็ได้ที่จำได้)
+const ADMIN_CODE = "sitem2026";
+
+// 2) แหล่งข้อมูลคะแนน = ลิงก์ "เผยแพร่เป็น CSV" ของ Google Sheet ที่ผูกกับฟอร์มแต่ละบท
+//    (วิธีเอาลิงก์: ในชีต > ไฟล์ > แชร์ > เผยแพร่ไปยังเว็บ > เลือกชีต > CSV > เผยแพร่)
+//    ใส่ได้หลายบท แต่ละบทหนึ่งบรรทัด
+const SOURCES = [
+  { chapter:"Road Blocker", url:"" },   // <-- วางลิงก์ CSV ของฟอร์ม Road Blocker ที่นี่
+  // { chapter:"UPS", url:"https://docs.google.com/.../pub?output=csv" },
+];
+
+/* ============================================================ ด่านรหัสผ่าน ============================================================ */
+function tryCode(){
+  if(document.getElementById("codeInput").value === ADMIN_CODE){
+    sessionStorage.setItem("sitem_admin","1");
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("app").style.display="block";
+    loadAll();
+  } else {
+    document.getElementById("codeErr").style.display="block";
+  }
+}
+document.getElementById("codeBtn").onclick = tryCode;
+document.getElementById("codeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") tryCode(); });
+if(sessionStorage.getItem("sitem_admin")==="1"){
+  document.getElementById("gate").classList.add("hidden");
+  document.getElementById("app").style.display="block";
+}
+
+/* ============================================================ ตัวแปรเก็บข้อมูล ============================================================ */
+let ROWS = [];   // ทุกแถวที่รวมจากทุกบท
+
+/* ตัวแยกข้อความ CSV (รองรับเครื่องหมายคำพูดและคอมมาในเซลล์) */
+function parseCSV(text){
+  const rows=[]; let row=[], cell="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; }
+      else cell+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===',' ){ row.push(cell); cell=""; }
+      else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=""; }
+      else if(c==='\r'){}
+      else cell+=c;
+    }
+  }
+  if(cell!==""||row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+/* หาคอลัมน์จากคำในหัวตาราง (ไทย/อังกฤษ) */
+function findCol(headers, keys){
+  for(let i=0;i<headers.length;i++){
+    const h=headers[i].toLowerCase();
+    if(keys.some(k=>h.includes(k))) return i;
+  }
+  return -1;
+}
+
+/* แปลงคะแนน "8 / 10" -> {got:8,max:10} */
+function parseScore(s){
+  if(!s) return null;
+  const m=String(s).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+  if(m) return { got:parseFloat(m[1]), max:parseFloat(m[2]) };
+  const n=String(s).match(/(\d+(?:\.\d+)?)/);
+  return n ? { got:parseFloat(n[1]), max:null } : null;
+}
+
+/* โหลดข้อมูลจากทุกแหล่ง */
+async function loadAll(){
+  const configured = SOURCES.filter(s=>s.url && s.url.trim());
+  if(configured.length===0){ showSetup(); return; }
+  document.getElementById("tableCard").innerHTML = '<div class="note">กำลังโหลดข้อมูล...</div>';
+  ROWS = [];
+  for(const src of configured){
+    try{
+      const res = await fetch(src.url);
+      const txt = await res.text();
+      const grid = parseCSV(txt).filter(r=>r.length>1);
+      if(grid.length<2) continue;
+      const headers = grid[0];
+      const ci = {
+        time: findCol(headers,["timestamp","ประทับเวลา","เวลา"]),
+        email:findCol(headers,["email","อีเมล","เมล"]),
+        name: findCol(headers,["name","ชื่อ"]),
+        score:findCol(headers,["score","คะแนน","คะแนนรวม"]),
+      };
+      for(let r=1;r<grid.length;r++){
+        const row=grid[r];
+        ROWS.push({
+          chapter: src.chapter,
+          time:  ci.time>=0  ? row[ci.time]  : "",
+          email: ci.email>=0 ? row[ci.email] : "",
+          name:  ci.name>=0  ? row[ci.name]  : "",
+          score: ci.score>=0 ? row[ci.score] : "",
+        });
+      }
+    }catch(e){ /* ข้ามแหล่งที่โหลดไม่ได้ */ }
+  }
+  render();
+}
+
+/* แสดงข้อความตั้งค่าเมื่อยังไม่ใส่ลิงก์ */
+function showSetup(){
+  document.getElementById("tiles").innerHTML="";
+  document.getElementById("tableCard").innerHTML =
+    '<div class="note">ยังไม่ได้เชื่อมข้อมูลคะแนน<br><br>เปิดไฟล์ <code>admin.html</code> แล้วใส่ลิงก์ CSV ของ Google Sheet '+
+    'ที่ผูกกับฟอร์มในตัวแปร <code>SOURCES</code> (ดูวิธีในคู่มือ Admin)</div>';
+}
+
+/* วาดสรุป + ตาราง */
+function render(){
+  const kw = (document.getElementById("search").value||"").trim().toLowerCase();
+  const list = ROWS.filter(r=>!kw || (r.name+r.email+r.chapter).toLowerCase().includes(kw));
+
+  // สรุป
+  const learners = new Set(ROWS.map(r=>(r.email||r.name).toLowerCase()).filter(Boolean));
+  let sumPct=0, nPct=0;
+  ROWS.forEach(r=>{ const s=parseScore(r.score); if(s&&s.max){ sumPct+=s.got/s.max*100; nPct++; } });
+  const avg = nPct ? Math.round(sumPct/nPct) : null;
+  document.getElementById("tiles").innerHTML = `
+    <div class="tile"><b>${ROWS.length}</b><span>รายการส่งทั้งหมด</span></div>
+    <div class="tile"><b>${learners.size}</b><span>ผู้เรียน (ไม่ซ้ำ)</span></div>
+    <div class="tile"><b>${SOURCES.filter(s=>s.url).length}</b><span>บทที่เชื่อมข้อมูล</span></div>
+    <div class="tile"><b>${avg!==null?avg+"%":"—"}</b><span>คะแนนเฉลี่ย</span></div>`;
+
+  // ตาราง
+  if(list.length===0){ document.getElementById("tableCard").innerHTML='<div class="note">ไม่พบข้อมูล</div>'; return; }
+  const rowsHtml = list.map(r=>{
+    const s=parseScore(r.score);
+    let badge='<span class="muted">—</span>';
+    if(r.score){
+      const cls = (s&&s.max) ? (s.got/s.max>=0.7?'b-pass':'b-fail') : 'b-plain';
+      badge=`<span class="badge ${cls}">${r.score}</span>`;
+    }
+    return `<tr>
+      <td>${r.name||'<span class="muted">(ไม่มีชื่อ)</span>'}</td>
+      <td class="mono">${r.email||'<span class="muted">—</span>'}</td>
+      <td>${r.chapter}</td>
+      <td>${badge}</td>
+      <td class="muted mono">${r.time||''}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("tableCard").innerHTML = `
+    <table>
+      <thead><tr><th>ชื่อ</th><th>อีเมล</th><th>บทเรียน</th><th>คะแนน</th><th>เวลาส่ง</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("reloadBtn").addEventListener("click", loadAll);
+// ถ้าผ่านด่านมาแล้ว (เคยกรอกรหัสในแท็บนี้) โหลดเลย
+if(sessionStorage.getItem("sitem_admin")==="1") loadAll();
+</script>
+</body>
+</html>

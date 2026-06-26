@@ -196,11 +196,7 @@ button{font-family:inherit;cursor:pointer;}
     <h2>เข้าสู่ระบบเรียนรู้</h2>
     <p>ใช้บัญชีบริษัท (@sitem.co.th) เพื่อเข้าใช้งาน</p>
 
-    <!-- ปุ่ม Sign in with Google จริง (แสดงเมื่อตั้งค่า Client ID แล้ว) -->
-    <div class="gsi-wrap" id="gsiWrap"><div id="gsiBtn"></div></div>
-    <div class="or" id="loginOr">หรือ</div>
-
-    <!-- ทางเข้าสำรอง: กรอกอีเมล (ใช้ได้ทันทีโดยไม่ต้องตั้งค่า) -->
+    <!-- ทางเข้าหลัก: กรอกอีเมล -->
     <form id="loginForm">
       <label for="loginName">ชื่อ-สกุล</label>
       <input id="loginName" type="text" placeholder="เช่น ธนกฤต พงษ์ไทย" required />
@@ -209,6 +205,10 @@ button{font-family:inherit;cursor:pointer;}
       <p class="login-err" id="loginErr"></p>
       <button class="btn btn-primary" type="submit">เข้าสู่ระบบ</button>
     </form>
+
+    <!-- ปุ่ม Sign in with Google (ย้ายมาไว้ด้านล่าง / แสดงเมื่อตั้งค่า Client ID แล้ว) -->
+    <div class="or" id="loginOr">หรือ</div>
+    <div class="gsi-wrap" id="gsiWrap"><div id="gsiBtn"></div></div>
   </div>
 </div>
 
