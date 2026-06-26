@@ -4,16 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SITEM Academy — ระบบเรียนรู้ผลิตภัณฑ์และอุปกรณ์</title>
-
-<!-- ฟอนต์แบรนด์ SITEM -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-<!-- Google Identity Services (สำหรับ Sign in with Google จริง) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
-/* ============================================================ 1) DESIGN TOKENS (SITEM Academy Design System) ============================================================ */
+/* ============================================================ 1) DESIGN TOKENS ============================================================ */
 :root{
   --blue-50:#e9f5fb; --blue-100:#cae8f6; --blue-200:#98d2ee; --blue-300:#5cb6e3;
   --blue-400:#2598d4; --blue-500:#0e7cc0; --blue-600:#0a66a6; --blue-700:#0a558c;
@@ -72,12 +69,12 @@ button{font-family:inherit;cursor:pointer;}
 .login-card input:focus{outline:0;border-color:var(--border-focus);box-shadow:var(--ring);background:#fff;}
 .login-card .btn{width:100%;margin-top:18px;}
 .login-err{color:var(--red-600);font-size:13px;text-align:left;margin:8px 0 0;}
-.gsi-wrap{display:none;justify-content:center;margin-top:14px;}     /* แสดงเมื่อใส่ Client ID แล้ว */
-.or{display:none;align-items:center;gap:10px;color:var(--text-faint);font-size:12px;margin:14px 0 0;} /* เส้นคั่น "หรือ" */
+.gsi-wrap{display:none;justify-content:center;margin-top:14px;}
+.or{display:none;align-items:center;gap:10px;color:var(--text-faint);font-size:12px;margin:14px 0 0;}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--border-subtle);}
 .logout{margin-left:8px;background:var(--surface-sunken);border:0;color:var(--text-muted);font-size:12px;padding:6px 10px;border-radius:var(--radius-pill);cursor:pointer;}
 .logout:hover{background:var(--slate-200);color:var(--text-body);}
-.adminbtn{margin-left:4px;background:var(--blue-500);color:#fff;border:0;font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--radius-pill);text-decoration:none;} /* ปุ่ม Admin (โชว์เฉพาะแอดมิน) */
+.adminbtn{margin-left:4px;background:var(--blue-500);color:#fff;border:0;font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--radius-pill);text-decoration:none;}
 .adminbtn:hover{background:var(--blue-600);}
 
 /* Sidebar */
@@ -87,12 +84,13 @@ button{font-family:inherit;cursor:pointer;}
     linear-gradient(rgba(75,195,217,.12) 1px,transparent 1px),
     linear-gradient(90deg,rgba(75,195,217,.12) 1px,transparent 1px);
   background-size:100% 100%,24px 24px,24px 24px;}
-.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;}
 .brand img{width:38px;height:38px;border-radius:9px;background:#fff;padding:4px;box-shadow:var(--shadow-sm);}
 .brand .name{font-weight:700;font-size:18px;letter-spacing:.02em;line-height:1;color:#fff;}
 .brand .sub{font-size:11px;letter-spacing:.18em;color:var(--cyan-300);font-weight:600;}
-.nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600;padding:6px 10px;margin-top:6px;}
-.nav{display:flex;flex-direction:column;gap:3px;overflow-y:auto;flex:1;}
+.nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600;padding:6px 10px;margin-top:8px;}
+.nav{display:flex;flex-direction:column;gap:3px;}
+.nav.scroll{overflow-y:auto;flex:1;}
 .nav-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;background:transparent;
   color:rgba(238,243,251,.85);padding:10px 11px;border-radius:var(--radius-md);font-size:14.5px;
   transition:background var(--dur-fast),color var(--dur-fast);}
@@ -133,6 +131,10 @@ button{font-family:inherit;cursor:pointer;}
 .stack>*+*{margin-top:20px;}
 .fade-in{animation:fadeIn var(--dur-base) var(--ease-out);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.welcome{background:linear-gradient(135deg,var(--blue-700),var(--blue-500));color:#fff;border-radius:var(--radius-lg);padding:20px 24px;box-shadow:var(--shadow-brand);display:flex;align-items:center;gap:16px;}
+.welcome .wv{font-size:30px;}
+.welcome b{font-size:18px;font-weight:700;display:block;}
+.welcome span{font-size:13px;color:var(--cyan-300);}
 .product-head{display:flex;gap:18px;align-items:flex-start;}
 .product-icon{width:56px;height:56px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:var(--shadow-sm);}
 .product-icon svg{width:28px;height:28px;}
@@ -168,6 +170,7 @@ button{font-family:inherit;cursor:pointer;}
 .btn-done:hover{background:#d6f0e0;}
 .quiz-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px;}
 .quiz-nolink{color:var(--text-faint);font-size:14px;}
+.lib-frame{width:100%;height:76vh;border:0;display:block;}
 
 /* ============================================================ 5) RESPONSIVE ============================================================ */
 @media(max-width:880px){
@@ -176,6 +179,7 @@ button{font-family:inherit;cursor:pointer;}
   .brand{padding:0;margin-right:auto;}
   .nav-label,.side-progress{display:none;}
   .nav{flex-direction:row;flex-wrap:wrap;width:100%;margin-top:10px;gap:6px;}
+  .nav.scroll{overflow:visible;}
   .nav-item{width:auto;}.nav-item .ni-text{max-width:130px;}
   .topbar{flex-wrap:wrap;height:auto;padding:12px 16px;gap:10px;}
   .page-title{width:100%;}
@@ -197,8 +201,6 @@ button{font-family:inherit;cursor:pointer;}
     <div class="login-brand">SITEM <span>ACADEMY</span></div>
     <h2>เข้าสู่ระบบเรียนรู้</h2>
     <p>ใช้บัญชีบริษัท (@sitem.co.th) เพื่อเข้าใช้งาน</p>
-
-    <!-- ทางเข้าหลัก: กรอกอีเมล -->
     <form id="loginForm">
       <label for="loginName">ชื่อ-สกุล</label>
       <input id="loginName" type="text" placeholder="เช่น ธนกฤต พงษ์ไทย" required />
@@ -207,8 +209,6 @@ button{font-family:inherit;cursor:pointer;}
       <p class="login-err" id="loginErr"></p>
       <button class="btn btn-primary" type="submit">เข้าสู่ระบบ</button>
     </form>
-
-    <!-- ปุ่ม Sign in with Google (ย้ายมาไว้ด้านล่าง / แสดงเมื่อตั้งค่า Client ID แล้ว) -->
     <div class="or" id="loginOr">หรือ</div>
     <div class="gsi-wrap" id="gsiWrap"><div id="gsiBtn"></div></div>
   </div>
@@ -221,8 +221,15 @@ button{font-family:inherit;cursor:pointer;}
       <img src="sitem-mark.png" alt="SITEM" />
       <div><div class="name">SITEM</div><div class="sub">ACADEMY</div></div>
     </div>
+    <!-- แท็บคลังเอกสาร (อยู่บนสุด) -->
+    <nav class="nav">
+      <button class="nav-item" id="libBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+        <span class="ni-text">คลังเอกสาร</span>
+      </button>
+    </nav>
     <div class="nav-label">ผลิตภัณฑ์ &amp; หลักสูตร</div>
-    <nav class="nav" id="productNav"></nav>
+    <nav class="nav scroll" id="productNav"></nav>
     <p class="empty" id="noResult" style="display:none">ไม่พบผลิตภัณฑ์ที่ค้นหา</p>
     <div class="side-progress">
       <svg class="ring" id="overallRing" viewBox="0 0 36 36"></svg>
@@ -254,62 +261,45 @@ button{font-family:inherit;cursor:pointer;}
 
 <script>
 /* ============================================================
-   1) DATA — ผลิตภัณฑ์ของ SITEM
-   แก้เนื้อหา / วิดีโอ / เอกสาร / ลิงก์ข้อสอบ ได้ที่นี่ที่เดียว
-   videoId  = รหัส/ลิงก์ YouTube หรือลิงก์ Google Drive
-   docs     = เอกสารประกอบ (ใส่ได้หลายไฟล์) -> [{title:"ชื่อ", url:"ลิงก์"}]
-   quizLink = ลิงก์ข้อสอบท้ายบท (Google Form) — ใส่ "#" ถ้ายังไม่มี
-   * ไฟล์ Drive (วิดีโอ/เอกสาร) ต้องตั้งแชร์ "ทุกคนที่มีลิงก์" ก่อน *
+   1) DATA — แก้เนื้อหา / วิดีโอ / เอกสาร / ลิงก์ข้อสอบ ที่นี่ที่เดียว
    ============================================================ */
 const PRODUCTS = [
   { id:"company", icon:"building", color:"var(--blue-500)", eyebrow:"ONBOARDING",
     name:"รู้จัก SITEM", tagline:"ประวัติบริษัท วิสัยทัศน์ และมาตรฐาน ISO 9001:2015",
     description:"Site Preparation Management (SITEM) คือผู้เชี่ยวชาญด้านการออกแบบ ก่อสร้าง และดูแลรักษา Data Center รวมถึงจัดจำหน่ายอุปกรณ์ระดับโลก ด้วยมาตรฐาน ISO 9001:2015 — Data Center ต้องถูกสร้างโดยมืออาชีพ",
     howto:["ทำความเข้าใจวิสัยทัศน์และบริการหลักของ SITEM","รู้จักกลุ่มผลิตภัณฑ์ของบริษัท","ศึกษามาตรฐานคุณภาพและความปลอดภัยในงาน Data Center"],
-    videoId:"scbs0VRu-ZA",
-    docs:[],
-    quizLink:"#",
+    videoId:"scbs0VRu-ZA", docs:[], quizLink:"#",
   },
   { id:"power", icon:"zap", color:"var(--amber-500)", eyebrow:"POWER",
     name:"ระบบสำรองไฟ UPS", tagline:"Static UPS — Riello, Eaton, Piller",
     description:"ระบบ UPS (Uninterruptible Power Supply) จ่ายไฟสำรองให้ Data Center ทำงานต่อเนื่องโดยไม่สะดุดเมื่อไฟหลักดับ ครอบคลุมการติดตั้ง การใช้ซอฟต์แวร์ Power Manager และการบำรุงรักษาเชิงป้องกัน",
     howto:["ตรวจสอบโหลดและขนาด UPS ให้เหมาะกับอุปกรณ์ที่ป้องกัน","ติดตั้ง Static UPS ตามคู่มือและต่อสายกราวด์ให้ถูกต้อง","ตั้งค่าและมอนิเตอร์ผ่านซอฟต์แวร์ Power Manager","ทำ Preventive Maintenance และตรวจสภาพแบตเตอรี่ตามรอบ"],
-    videoId:"aqz-KE-bpKQ",
-    docs:[],
-    quizLink:"#",
+    videoId:"aqz-KE-bpKQ", docs:[], quizLink:"#",
   },
   { id:"monitoring", icon:"chart", color:"var(--cyan-500)", eyebrow:"MONITORING",
     name:"Power & Environmental Monitoring", tagline:"Packet Power / EMX",
     description:"ระบบมอนิเตอร์พลังงานและสภาพแวดล้อมแบบเรียลไทม์ ด้วย Packet Power และ EMX รองรับ Smart Power Cables และ Ethernet/Modbus Gateway เพื่อเฝ้าระวังการใช้พลังงาน อุณหภูมิ และความชื้นภายใน Data Center",
     howto:["เข้าใช้งาน EMX Monitoring Portal และดูแดชบอร์ดรวม","ติดตั้ง Smart Power Cables เพื่อวัดการใช้พลังงานรายจุด","เชื่อมต่อ Ethernet Gateway เข้ากับระบบเครือข่าย","ตั้งค่า Alerts & Policies เพื่อแจ้งเตือนเมื่อค่าผิดปกติ"],
-    videoId:"ScMzIvxBSi4",
-    docs:[],
-    quizLink:"#",
+    videoId:"ScMzIvxBSi4", docs:[], quizLink:"#",
   },
   { id:"cooling", icon:"snow", color:"var(--blue-400)", eyebrow:"COOLING",
     name:"ระบบทำความเย็น STULZ", tagline:"Precision Cooling สำหรับ Data Center",
     description:"STULZ คือระบบ Precision Cooling ที่ควบคุมอุณหภูมิและความชื้นได้อย่างแม่นยำ เพื่อให้อุปกรณ์ใน Data Center ทำงานในสภาวะที่เหมาะสมตลอด 24 ชั่วโมง ครอบคลุมหลักการทำงาน การติดตั้ง CRAC Unit และการควบคุมค่า",
     howto:["เข้าใจหลักการ Precision Cooling และความสำคัญต่อ Data Center","ติดตั้ง CRAC Unit และวางตำแหน่งลมเย็น/ลมร้อนให้ถูกต้อง","ตั้งค่าควบคุมอุณหภูมิและความชื้นให้อยู่ในเกณฑ์","ตรวจสอบฟิลเตอร์และประสิทธิภาพการทำความเย็นเป็นระยะ"],
-    videoId:"aqz-KE-bpKQ",
-    docs:[],
-    quizLink:"#",
+    videoId:"aqz-KE-bpKQ", docs:[], quizLink:"#",
   },
   { id:"fire", icon:"droplet", color:"var(--red-500)", eyebrow:"FIRE SUPPRESSION",
     name:"ระบบดับเพลิง HI-FOG", tagline:"Water Mist — มาตรฐาน NFPA 750",
     description:"HI-FOG เป็นระบบดับเพลิงด้วยหมอกน้ำ (Water Mist) แรงดันสูง ที่ใช้น้ำปริมาณน้อยแต่ดับไฟได้อย่างมีประสิทธิภาพและปลอดภัยต่ออุปกรณ์อิเล็กทรอนิกส์ ออกแบบตามมาตรฐาน NFPA 750 สำหรับ Data Center โดยเฉพาะ",
     howto:["เข้าใจหลักการดับเพลิงด้วยหมอกน้ำ (Water Mist)","ศึกษาข้อกำหนดตามมาตรฐาน NFPA 750 โดยสรุป","ตรวจสอบและตั้งค่า Pre-action Valve ให้พร้อมทำงาน","ทดสอบระบบและซ้อมแผนตอบสนองเหตุเพลิงไหม้"],
-    videoId:"ScMzIvxBSi4",
-    docs:[],
-    quizLink:"#",
+    videoId:"ScMzIvxBSi4", docs:[], quizLink:"#",
   },
   { id:"roadblocker", icon:"shield", color:"var(--blue-700)", eyebrow:"SECURITY",
     name:"Road Blocker & Access Control", tagline:"Boon Edam — ระบบกั้นทาง / ควบคุมการเข้าออก",
     description:"Road Blocker คืออุปกรณ์กั้นขวางยานพาหนะสำหรับจุดคัดกรองความปลอดภัย ใช้คู่กับระบบควบคุมการเข้าออก (Access Control) ของ Boon Edam เพื่อป้องกันการบุกรุกเข้าพื้นที่ Data Center ครอบคลุมหลักการทำงาน การติดตั้ง และความปลอดภัยในการใช้งาน",
     howto:["เข้าใจหน้าที่ของ Road Blocker ในระบบรักษาความปลอดภัย","ศึกษาขั้นตอนการยก/ลดที่กั้นอย่างปลอดภัย","ตรวจสอบระบบควบคุมและสัญญาณเตือนก่อนใช้งาน","ปฏิบัติตามขั้นตอนความปลอดภัยเมื่อมีรถผ่าน"],
     videoId:"https://drive.google.com/file/d/1dg3bmifq5HzEGKOnWDgsdT69ybzqPZ-B/view?usp=drive_link",
-    docs:[
-      {title:"เอกสารประกอบการเรียน Road Blocker", url:"https://drive.google.com/file/d/1-KAdRdCyrxL7RBONebfWgbYOxXu_fEDJ/view?usp=drive_link"},
-    ],
+    docs:[ {title:"เอกสารประกอบการเรียน Road Blocker", url:"https://drive.google.com/file/d/1-KAdRdCyrxL7RBONebfWgbYOxXu_fEDJ/view?usp=drive_link"} ],
     quizLink:"https://forms.gle/KzcGoX8dUNvXVEjM7",
   },
 ];
@@ -330,11 +320,12 @@ const ICONS = {
 const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
 
 /* ============================================================ 3) STATE + HELPERS ============================================================ */
+const LIBRARY_URL = "https://forworkbyarm.github.io/LibraryByArm/";  // ลิงก์คลังเอกสาร
 let currentId = PRODUCTS[0].id;
-const passed = {};
+let inLibrary = false;
+const passed = {};                 // สถานะ "เรียนจบ" รายบท (โหลดจาก localStorage รายคน)
 const getProduct = id => PRODUCTS.find(p=>p.id===id);
 
-// แปลงค่าวิดีโอเป็นลิงก์ฝัง — รองรับ YouTube และ Google Drive
 function videoEmbed(p){
   const v = (p.videoId || p.video || "").trim();
   if(v.includes("drive.google.com")){
@@ -345,6 +336,15 @@ function videoEmbed(p){
   const id = yt ? yt[1] : v;
   return "https://www.youtube.com/embed/"+id;
 }
+
+/* ----- จำความคืบหน้ารายคน (เก็บใน localStorage ผูกกับอีเมล) ----- */
+function progKey(){ return currentUser ? "sitem_progress_"+currentUser.email.toLowerCase() : null; }
+function loadProgress(){
+  for(const k in passed) delete passed[k];
+  const key=progKey(); if(!key) return;
+  try{ const s=JSON.parse(localStorage.getItem(key)); if(s) Object.assign(passed,s); }catch(e){}
+}
+function saveProgress(){ const key=progKey(); if(key) localStorage.setItem(key, JSON.stringify(passed)); }
 
 /* ============================================================ 4) progress ring รวม ============================================================ */
 function renderOverall(){
@@ -358,35 +358,50 @@ function renderOverall(){
     <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="var(--font-mono)">${pct}%</text>`;
 }
 
-/* ============================================================ 5) เมนู sidebar (ค้นหา) ============================================================ */
+/* ============================================================ 5) เมนู sidebar ============================================================ */
 function renderNav(keyword=""){
   const nav = document.getElementById("productNav");
   const k = keyword.trim().toLowerCase();
   const list = PRODUCTS.filter(p=>p.name.toLowerCase().includes(k)||p.tagline.toLowerCase().includes(k));
   document.getElementById("noResult").style.display = list.length ? "none" : "block";
+  document.getElementById("libBtn").classList.toggle("active", inLibrary);  // ไฮไลต์แท็บคลังเอกสาร
   nav.innerHTML = "";
   list.forEach(p=>{
     const btn = document.createElement("button");
-    btn.className = "nav-item"+(p.id===currentId?" active":"");
+    btn.className = "nav-item"+((!inLibrary && p.id===currentId)?" active":"");
     btn.innerHTML = `${svg(p.icon)}<span class="ni-text">${p.name}</span><span class="ni-dot${passed[p.id]?' done':''}"></span>`;
     btn.onclick = ()=>selectProduct(p.id);
     nav.appendChild(btn);
   });
 }
 
-/* ============================================================ 6) เลือกผลิตภัณฑ์ ============================================================ */
+/* ============================================================ 6) เลือกผลิตภัณฑ์ / เปิดคลังเอกสาร ============================================================ */
 function selectProduct(id){
+  inLibrary = false;
   currentId = id;
   renderNav(document.getElementById("searchInput").value);
   renderContent();
   document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
 }
+function showLibrary(){
+  inLibrary = true;
+  renderNav(document.getElementById("searchInput").value);
+  document.getElementById("contentArea").innerHTML = `
+    <div class="card fade-in" style="padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border-subtle)">
+        <h3 class="section-title" style="margin:0">${svg("doc")} คลังเอกสาร</h3>
+        <a class="btn btn-ghost" href="${LIBRARY_URL}" target="_blank" rel="noopener" style="padding:7px 14px;font-size:13px">${svg("arrow")} เปิดในแท็บใหม่</a>
+      </div>
+      <iframe class="lib-frame" src="${LIBRARY_URL}" title="คลังเอกสาร"></iframe>
+    </div>`;
+  document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.getElementById("libBtn").onclick = showLibrary;
 
-/* ============================================================ 7) เนื้อหาหลัก: ข้อมูล + วิดีโอ + เอกสาร + แบบทดสอบ ============================================================ */
+/* ============================================================ 7) เนื้อหาหลัก ============================================================ */
 function renderContent(){
   const p = getProduct(currentId);
   const howto = p.howto.map((s,i)=>`<li><span class="num">${i+1}</span><span class="t">${s}</span></li>`).join("");
-  // การ์ดเอกสาร (แสดงเฉพาะบทที่มี docs)
   const docsCard = (p.docs && p.docs.length) ? `
       <div class="card">
         <h3 class="section-title">${svg("doc")} เอกสารประกอบการเรียน</h3>
@@ -394,7 +409,6 @@ function renderContent(){
           ${p.docs.map(d=>`<a class="doc-item" href="${d.url}" target="_blank" rel="noopener"><span class="di-ic">${svg("doc")}</span><span>${d.title}</span><span class="di-go">${svg("arrow")}</span></a>`).join("")}
         </div>
       </div>` : "";
-
   document.getElementById("contentArea").innerHTML = `
     <div class="stack fade-in">
       <div class="card">
@@ -423,7 +437,7 @@ function renderContent(){
     </div>`;
 }
 
-/* ============================================================ 8) แบบทดสอบ (ลิงก์) + ทำเครื่องหมายเรียนจบ ============================================================ */
+/* ============================================================ 8) แบบทดสอบ + ทำเครื่องหมายเรียนจบ ============================================================ */
 function quizBtn(p){
   const has = p.quizLink && p.quizLink !== "#";
   return has
@@ -437,17 +451,16 @@ function doneBtn(p){
 }
 function toggleDone(id){
   passed[id] = !passed[id];
+  saveProgress();                 // บันทึกความคืบหน้ารายคน
   renderOverall();
   renderNav(document.getElementById("searchInput").value);
   renderContent();
 }
 
 /* ============================================================ 9) ระบบล็อกอิน ============================================================ */
-const SITEM_DOMAIN = "@sitem.co.th";   // โดเมนอีเมลบริษัท
-// อีเมลที่เป็นแอดมิน (เห็นปุ่ม Admin + เข้าหน้า admin.html ได้) — เพิ่ม/ลดรายชื่อได้ที่นี่
-const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];
+const SITEM_DOMAIN = "@sitem.co.th";
+const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];   // อีเมลแอดมิน (เพิ่ม/ลดได้)
 const isAdmin = email => ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase());
-// *** วาง OAuth Client ID จาก Google Cloud ตรงนี้ เพื่อเปิดใช้ "Sign in with Google" จริง (ดูคู่มือ) ***
 const GOOGLE_CLIENT_ID = "153619259603-pc7cuamp045984cd1rfpgoefv3j7pnkc.apps.googleusercontent.com";
 
 let currentUser = null;
@@ -461,9 +474,12 @@ function showApp(user){
   document.getElementById("userEmail").textContent = user.email;
   const av = document.getElementById("userAvatar");
   av.innerHTML = user.picture ? `<img src="${user.picture}" alt="">` : initialsOf(user.name);
-  document.getElementById("adminBtn").style.display = isAdmin(user.email) ? "inline-block" : "none"; // โชว์ปุ่ม Admin เฉพาะแอดมิน
+  document.getElementById("adminBtn").style.display = isAdmin(user.email) ? "inline-block" : "none";
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("appLayout").classList.add("show");
+  loadProgress();                 // โหลดความคืบหน้าของผู้ใช้คนนี้
+  inLibrary = false;
+  renderOverall(); renderNav(); renderContent();
 }
 function logout(){
   localStorage.removeItem("sitem_user");
@@ -473,7 +489,6 @@ function logout(){
   document.getElementById("loginForm").reset();
 }
 
-// --- ทางเข้าสำรอง: กรอกอีเมล (ด่านกรองเบื้องต้น) ---
 document.getElementById("loginForm").addEventListener("submit",e=>{
   e.preventDefault();
   const name  = document.getElementById("loginName").value.trim();
@@ -490,8 +505,7 @@ document.getElementById("loginForm").addEventListener("submit",e=>{
 });
 document.getElementById("logoutBtn").addEventListener("click", logout);
 
-// --- Sign in with Google จริง ---
-function decodeJwt(t){ // ถอดข้อมูลจาก token ของ Google
+function decodeJwt(t){
   try{ return JSON.parse(decodeURIComponent(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""))); }
   catch(e){ return {}; }
 }
@@ -510,11 +524,11 @@ function initGoogle(){
   if(!GOOGLE_CLIENT_ID || !(window.google && google.accounts)) return;
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, hd:"sitem.co.th" });
   google.accounts.id.renderButton(document.getElementById("gsiBtn"), { theme:"outline", size:"large", width:320, text:"signin_with", shape:"pill" });
-  document.getElementById("gsiWrap").style.display = "flex";   // โชว์ปุ่ม Google
-  document.getElementById("loginOr").style.display = "flex";   // โชว์เส้นคั่น "หรือ"
+  document.getElementById("gsiWrap").style.display = "flex";
+  document.getElementById("loginOr").style.display = "flex";
 }
-window.onGoogleLibraryLoad = initGoogle;          // เรียกเมื่อไลบรารี Google โหลดเสร็จ
-if(window.google && google.accounts) initGoogle();// เผื่อโหลดเสร็จไปก่อนแล้ว
+window.onGoogleLibraryLoad = initGoogle;
+if(window.google && google.accounts) initGoogle();
 
 /* ============================================================ 10) EVENTS + INIT ============================================================ */
 document.getElementById("searchInput").addEventListener("input",e=>renderNav(e.target.value));
