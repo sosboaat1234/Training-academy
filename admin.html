@@ -203,19 +203,22 @@ async function loadAll(){
       if(grid.length<2) continue;
       const headers = grid[0];
       const ci = {
-        time: findCol(headers,["timestamp","ประทับเวลา","เวลา"]),
-        email:findCol(headers,["email","อีเมล","เมล"]),
-        name: findCol(headers,["name","ชื่อ"]),
-        score:findCol(headers,["score","คะแนน","คะแนนรวม"]),
+        time:  findCol(headers,["timestamp","ประทับเวลา","เวลา"]),
+        email: findCol(headers,["email","อีเมล","เมล"]),
+        name:  findCol(headers,["name","ชื่อ"]),
+        score: findCol(headers,["score","คะแนน","คะแนนรวม"]),
+        lesson:findCol(headers,["บทเรียน","lesson","chapter","หลักสูตร"]),
+        status:findCol(headers,["สถานะ","status","ผล"]),
       };
       for(let r=1;r<grid.length;r++){
         const row=grid[r];
         ROWS.push({
-          chapter: src.chapter,
+          chapter: ci.lesson>=0 ? row[ci.lesson] : src.chapter,
           time:  ci.time>=0  ? row[ci.time]  : "",
           email: ci.email>=0 ? row[ci.email] : "",
           name:  ci.name>=0  ? row[ci.name]  : "",
           score: ci.score>=0 ? row[ci.score] : "",
+          status:ci.status>=0? row[ci.status]: "",
         });
       }
     }catch(e){ /* ข้ามแหล่งที่โหลดไม่ได้ */ }
@@ -255,6 +258,9 @@ function render(){
     if(r.score){
       const cls = (s&&s.max) ? (s.got/s.max>=0.7?'b-pass':'b-fail') : 'b-plain';
       badge=`<span class="badge ${cls}">${r.score}</span>`;
+    } else if(r.status){
+      const cls = /จบ|pass|ผ่าน/i.test(r.status) ? 'b-pass' : 'b-plain';
+      badge=`<span class="badge ${cls}">${r.status}</span>`;
     }
     return `<tr>
       <td>${r.name||'<span class="muted">(ไม่มีชื่อ)</span>'}</td>
@@ -266,7 +272,7 @@ function render(){
   }).join("");
   document.getElementById("tableCard").innerHTML = `
     <table>
-      <thead><tr><th>ชื่อ</th><th>อีเมล</th><th>บทเรียน</th><th>คะแนน</th><th>เวลาส่ง</th></tr></thead>
+      <thead><tr><th>ชื่อ</th><th>อีเมล</th><th>บทเรียน</th><th>คะแนน/สถานะ</th><th>เวลาส่ง</th></tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>`;
 }
