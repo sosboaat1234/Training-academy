@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITEM Academy — ระบบเรียนรู้ผลิตภัณฑ์และอุปกรณ์</title>
+
+<!-- ฟอนต์แบรนด์ SITEM -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<!-- Google Identity Services (สำหรับ Sign in with Google จริง) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+/* ============================================================ 1) DESIGN TOKENS (SITEM Academy Design System) ============================================================ */
+:root{
+  --blue-50:#e9f5fb; --blue-100:#cae8f6; --blue-200:#98d2ee; --blue-300:#5cb6e3;
+  --blue-400:#2598d4; --blue-500:#0e7cc0; --blue-600:#0a66a6; --blue-700:#0a558c;
+  --blue-800:#073f6b; --blue-900:#04314f;
+  --cyan-300:#80d8ea; --cyan-400:#4bc3d9; --cyan-500:#28aecb; --cyan-600:#1690ad;
+  --slate-0:#fff; --slate-25:#fafbfd; --slate-50:#f4f6fa; --slate-100:#e9edf4;
+  --slate-200:#d7dde8; --slate-300:#b9c2d2; --slate-400:#8b97ab; --slate-500:#647084;
+  --slate-600:#4a5568; --slate-700:#353f50; --slate-800:#232b39; --slate-900:#131923;
+  --green-50:#e7f7ee; --green-500:#16a35a; --green-600:#128048;
+  --amber-50:#fdf3e2; --amber-500:#e08a16; --amber-600:#b86d0c;
+  --red-50:#fdecec;   --red-500:#d83a3a;   --red-600:#b22a2a;
+  --color-primary:var(--blue-500); --color-primary-hover:var(--blue-600); --color-primary-active:var(--blue-700);
+  --color-primary-soft:var(--blue-50); --color-accent:var(--cyan-500);
+  --text-strong:var(--slate-900); --text-body:var(--slate-700); --text-muted:var(--slate-500);
+  --text-faint:var(--slate-400); --text-on-dark:#eef3fb;
+  --surface-page:var(--slate-50); --surface-card:var(--slate-0); --surface-sunken:var(--slate-100);
+  --border-subtle:var(--slate-200); --border-default:var(--slate-300); --border-focus:var(--blue-400);
+  --font-sans:"IBM Plex Sans Thai","IBM Plex Sans",-apple-system,"Segoe UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-xl:20px; --radius-pill:999px;
+  --shadow-sm:0 1px 3px rgba(19,25,35,.08),0 1px 2px rgba(19,25,35,.04);
+  --shadow-md:0 4px 12px rgba(19,25,35,.08),0 2px 4px rgba(19,25,35,.04);
+  --shadow-lg:0 12px 28px rgba(19,25,35,.12),0 4px 8px rgba(19,25,35,.05);
+  --shadow-brand:0 8px 22px rgba(14,124,192,.30);
+  --ring:0 0 0 3px rgba(14,124,192,.30);
+  --sidebar-w:248px; --topbar-h:64px; --container-max:1200px;
+  --ease-out:cubic-bezier(.22,.61,.36,1); --dur-fast:120ms; --dur-base:200ms; --dur-slow:320ms;
+  color-scheme:light;
+}
+/* ============================================================ 2) BASE ============================================================ */
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:var(--font-sans);font-size:16px;line-height:1.55;color:var(--text-body);
+  background:var(--surface-page);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+button{font-family:inherit;cursor:pointer;}
+.mono{font-family:var(--font-mono);}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary);}
+
+/* ============================================================ 3) LAYOUT + LOGIN ============================================================ */
+.layout{display:none;min-height:100vh;}
+.layout.show{display:flex;}
+.login{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;
+  background-image:linear-gradient(160deg,var(--blue-800),var(--blue-600)),
+    linear-gradient(rgba(75,195,217,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(75,195,217,.12) 1px,transparent 1px);
+  background-size:100% 100%,26px 26px,26px 26px;}
+.login.hidden{display:none;}
+.login-card{background:#fff;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:34px 30px;width:100%;max-width:380px;text-align:center;}
+.login-card img{width:54px;height:54px;border-radius:12px;background:#fff;padding:5px;box-shadow:var(--shadow-sm);}
+.login-brand{font-weight:700;font-size:18px;color:var(--blue-800);margin-top:8px;letter-spacing:.02em;}
+.login-brand span{color:var(--cyan-500);letter-spacing:.18em;font-size:12px;}
+.login-card h2{margin:14px 0 4px;font-size:20px;color:var(--text-strong);}
+.login-card>p{color:var(--text-muted);font-size:14px;margin:0 0 6px;}
+.login-card label{display:block;text-align:left;font-size:13px;font-weight:600;color:var(--text-body);margin:12px 0 5px;}
+.login-card input{width:100%;border:1px solid var(--border-subtle);background:var(--slate-25);border-radius:var(--radius-md);padding:11px 13px;font-size:15px;font-family:inherit;}
+.login-card input:focus{outline:0;border-color:var(--border-focus);box-shadow:var(--ring);background:#fff;}
+.login-card .btn{width:100%;margin-top:18px;}
+.login-err{color:var(--red-600);font-size:13px;text-align:left;margin:8px 0 0;}
+.gsi-wrap{display:none;justify-content:center;margin-top:14px;}     /* แสดงเมื่อใส่ Client ID แล้ว */
+.or{display:none;align-items:center;gap:10px;color:var(--text-faint);font-size:12px;margin:14px 0 0;} /* เส้นคั่น "หรือ" */
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--border-subtle);}
+.logout{margin-left:8px;background:var(--surface-sunken);border:0;color:var(--text-muted);font-size:12px;padding:6px 10px;border-radius:var(--radius-pill);cursor:pointer;}
+.logout:hover{background:var(--slate-200);color:var(--text-body);}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:0;height:100vh;color:var(--text-on-dark);
+  display:flex;flex-direction:column;padding:20px 14px;
+  background-image:linear-gradient(160deg,var(--blue-800),var(--blue-600)),
+    linear-gradient(rgba(75,195,217,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(75,195,217,.12) 1px,transparent 1px);
+  background-size:100% 100%,24px 24px,24px 24px;}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;}
+.brand img{width:38px;height:38px;border-radius:9px;background:#fff;padding:4px;box-shadow:var(--shadow-sm);}
+.brand .name{font-weight:700;font-size:18px;letter-spacing:.02em;line-height:1;color:#fff;}
+.brand .sub{font-size:11px;letter-spacing:.18em;color:var(--cyan-300);font-weight:600;}
+.nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600;padding:6px 10px;margin-top:6px;}
+.nav{display:flex;flex-direction:column;gap:3px;overflow-y:auto;flex:1;}
+.nav-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;background:transparent;
+  color:rgba(238,243,251,.85);padding:10px 11px;border-radius:var(--radius-md);font-size:14.5px;
+  transition:background var(--dur-fast),color var(--dur-fast);}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600;box-shadow:var(--shadow-sm);}
+.nav-item svg{width:19px;height:19px;flex-shrink:0;}
+.nav-item .ni-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ni-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0;}
+.ni-dot.done{background:var(--green-500);box-shadow:0 0 0 3px rgba(22,163,90,.25);}
+.side-progress{margin-top:12px;background:rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:14px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(4px);}
+.side-progress .ring{width:52px;height:52px;flex-shrink:0;}
+.side-progress .txt b{display:block;font-size:11px;letter-spacing:.04em;color:#fff;font-weight:600;}
+.side-progress .txt span{font-size:11px;color:var(--cyan-300);}
+
+/* ขวา */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{height:var(--topbar-h);position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;gap:16px;padding:0 22px;}
+.topbar .page-title b{display:block;font-size:16px;color:var(--text-strong);font-weight:700;line-height:1.2;}
+.topbar .page-title span{font-size:12px;color:var(--text-muted);}
+.search{flex:1;max-width:420px;margin-left:auto;position:relative;}
+.search input{width:100%;border:1px solid var(--border-subtle);background:var(--slate-25);border-radius:var(--radius-md);padding:9px 12px 9px 38px;font-size:14px;color:var(--text-body);transition:border var(--dur-fast),box-shadow var(--dur-fast);}
+.search input:focus{outline:0;border-color:var(--border-focus);box-shadow:var(--ring);background:#fff;}
+.search svg{width:18px;height:18px;color:var(--text-faint);position:absolute;left:12px;top:50%;transform:translateY(-50%);}
+.bell{position:relative;color:var(--text-muted);background:transparent;border:0;padding:6px;border-radius:50%;}
+.bell:hover{background:var(--surface-sunken);}
+.bell svg{width:20px;height:20px;}
+.bell .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red-500);border:1.5px solid #fff;}
+.who{display:flex;align-items:center;gap:9px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue-500),var(--cyan-500));color:#fff;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.who b{display:block;font-size:13px;color:var(--text-strong);line-height:1.2;}
+.who span{font-size:11.5px;color:var(--text-muted);}
+.content{padding:24px 28px 48px;max-width:var(--container-max);width:100%;margin:0 auto;}
+
+/* ============================================================ 4) CARDS & COMPONENTS ============================================================ */
+.card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px;}
+.stack>*+*{margin-top:20px;}
+.fade-in{animation:fadeIn var(--dur-base) var(--ease-out);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.product-head{display:flex;gap:18px;align-items:flex-start;}
+.product-icon{width:56px;height:56px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:var(--shadow-sm);}
+.product-icon svg{width:28px;height:28px;}
+.product-head h2{margin:2px 0;font-size:26px;font-weight:700;color:var(--text-strong);letter-spacing:-.01em;line-height:1.15;}
+.product-head .tagline{color:var(--text-muted);font-size:15px;}
+.desc{color:var(--text-body);margin-top:16px;line-height:1.7;}
+.howto{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:12px;}
+.howto li{display:flex;gap:12px;align-items:flex-start;}
+.howto .num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.howto span.t{font-size:15px;color:var(--text-body);line-height:1.5;}
+.section-title{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:600;color:var(--text-strong);margin:0 0 16px;}
+.section-title svg{width:20px;height:20px;color:var(--color-accent);}
+.video-wrap{position:relative;width:100%;padding-top:56.25%;border-radius:var(--radius-md);overflow:hidden;background:#000;box-shadow:var(--shadow-md);}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.video-meta{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--text-muted);}
+.video-meta .pill{font-family:var(--font-mono);background:var(--surface-sunken);color:var(--text-body);padding:3px 9px;border-radius:var(--radius-pill);font-size:12px;}
+.doc-list{display:flex;flex-direction:column;gap:8px;}
+.doc-item{display:flex;align-items:center;gap:11px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px;text-decoration:none;color:var(--text-body);transition:border var(--dur-fast),background var(--dur-fast);}
+.doc-item:hover{border-color:var(--border-focus);background:var(--color-primary-soft);}
+.doc-item .di-ic{color:var(--color-accent);display:flex;}
+.doc-item .di-ic svg{width:20px;height:20px;}
+.doc-item span{flex:1;font-size:14.5px;}
+.doc-item .di-go{color:var(--text-faint);display:flex;}
+.doc-item .di-go svg{width:16px;height:16px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;font-weight:600;font-size:15px;padding:11px 22px;border-radius:var(--radius-md);text-decoration:none;transition:background var(--dur-fast),box-shadow var(--dur-fast),transform var(--dur-fast);}
+.btn svg{width:18px;height:18px;}
+.btn-primary{background:var(--color-primary);color:#fff;box-shadow:var(--shadow-brand);}
+.btn-primary:hover{background:var(--color-primary-hover);}
+.btn-primary:active{background:var(--color-primary-active);transform:translateY(1px);}
+.btn-ghost{background:var(--surface-sunken);color:var(--text-body);}
+.btn-ghost:hover{background:var(--slate-200);}
+.btn-done{background:var(--green-50);color:var(--green-600);}
+.btn-done:hover{background:#d6f0e0;}
+.quiz-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px;}
+.quiz-nolink{color:var(--text-faint);font-size:14px;}
+
+/* ============================================================ 5) RESPONSIVE ============================================================ */
+@media(max-width:880px){
+  .layout.show{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px;}
+  .brand{padding:0;margin-right:auto;}
+  .nav-label,.side-progress{display:none;}
+  .nav{flex-direction:row;flex-wrap:wrap;width:100%;margin-top:10px;gap:6px;}
+  .nav-item{width:auto;}.nav-item .ni-text{max-width:130px;}
+  .topbar{flex-wrap:wrap;height:auto;padding:12px 16px;gap:10px;}
+  .page-title{width:100%;}
+  .search{max-width:none;margin-left:0;order:3;width:100%;}
+  .content{padding:18px 16px 40px;}
+  .product-head h2{font-size:22px;}
+  .login-card{max-width:100%;}
+}
+.empty{color:var(--text-faint);font-size:14px;padding:18px;text-align:center;}
+</style>
+</head>
+
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login" id="loginScreen">
+  <div class="login-card">
+    <img src="sitem-mark.png" alt="SITEM" />
+    <div class="login-brand">SITEM <span>ACADEMY</span></div>
+    <h2>เข้าสู่ระบบเรียนรู้</h2>
+    <p>ใช้บัญชีบริษัท (@sitem.co.th) เพื่อเข้าใช้งาน</p>
+
+    <!-- ปุ่ม Sign in with Google จริง (แสดงเมื่อตั้งค่า Client ID แล้ว) -->
+    <div class="gsi-wrap" id="gsiWrap"><div id="gsiBtn"></div></div>
+    <div class="or" id="loginOr">หรือ</div>
+
+    <!-- ทางเข้าสำรอง: กรอกอีเมล (ใช้ได้ทันทีโดยไม่ต้องตั้งค่า) -->
+    <form id="loginForm">
+      <label for="loginName">ชื่อ-สกุล</label>
+      <input id="loginName" type="text" placeholder="เช่น ธนกฤต พงษ์ไทย" required />
+      <label for="loginEmail">อีเมลบริษัท</label>
+      <input id="loginEmail" type="email" placeholder="yourname@sitem.co.th" required />
+      <p class="login-err" id="loginErr"></p>
+      <button class="btn btn-primary" type="submit">เข้าสู่ระบบ</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== แอปหลัก ===== -->
+<div class="layout" id="appLayout">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="sitem-mark.png" alt="SITEM" />
+      <div><div class="name">SITEM</div><div class="sub">ACADEMY</div></div>
+    </div>
+    <div class="nav-label">ผลิตภัณฑ์ &amp; หลักสูตร</div>
+    <nav class="nav" id="productNav"></nav>
+    <p class="empty" id="noResult" style="display:none">ไม่พบผลิตภัณฑ์ที่ค้นหา</p>
+    <div class="side-progress">
+      <svg class="ring" id="overallRing" viewBox="0 0 36 36"></svg>
+      <div class="txt"><b>ภาพรวมการเรียน</b><span id="overallText">0 / 0 หลักสูตร</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="page-title"><b>หน้าเรียนรู้ผลิตภัณฑ์</b><span>Product Training &amp; E-Learning Portal</span></div>
+      <div class="search">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="ค้นหาผลิตภัณฑ์ / อุปกรณ์..." autocomplete="off" />
+      </div>
+      <button class="bell" title="การแจ้งเตือน">
+        <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+        <span class="dot"></span>
+      </button>
+      <div class="who">
+        <div class="avatar" id="userAvatar"></div>
+        <div><b id="userName"></b><span id="userEmail"></span></div>
+        <button class="logout" id="logoutBtn" title="ออกจากระบบ">ออก</button>
+      </div>
+    </header>
+    <section class="content" id="contentArea"></section>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   1) DATA — ผลิตภัณฑ์ของ SITEM
+   แก้เนื้อหา / วิดีโอ / เอกสาร / ลิงก์ข้อสอบ ได้ที่นี่ที่เดียว
+   videoId  = รหัส/ลิงก์ YouTube หรือลิงก์ Google Drive
+   docs     = เอกสารประกอบ (ใส่ได้หลายไฟล์) -> [{title:"ชื่อ", url:"ลิงก์"}]
+   quizLink = ลิงก์ข้อสอบท้ายบท (Google Form) — ใส่ "#" ถ้ายังไม่มี
+   * ไฟล์ Drive (วิดีโอ/เอกสาร) ต้องตั้งแชร์ "ทุกคนที่มีลิงก์" ก่อน *
+   ============================================================ */
+const PRODUCTS = [
+  { id:"company", icon:"building", color:"var(--blue-500)", eyebrow:"ONBOARDING",
+    name:"รู้จัก SITEM", tagline:"ประวัติบริษัท วิสัยทัศน์ และมาตรฐาน ISO 9001:2015",
+    description:"Site Preparation Management (SITEM) คือผู้เชี่ยวชาญด้านการออกแบบ ก่อสร้าง และดูแลรักษา Data Center รวมถึงจัดจำหน่ายอุปกรณ์ระดับโลก ด้วยมาตรฐาน ISO 9001:2015 — Data Center ต้องถูกสร้างโดยมืออาชีพ",
+    howto:["ทำความเข้าใจวิสัยทัศน์และบริการหลักของ SITEM","รู้จักกลุ่มผลิตภัณฑ์ของบริษัท","ศึกษามาตรฐานคุณภาพและความปลอดภัยในงาน Data Center"],
+    videoId:"scbs0VRu-ZA",
+    docs:[],
+    quizLink:"#",
+  },
+  { id:"power", icon:"zap", color:"var(--amber-500)", eyebrow:"POWER",
+    name:"ระบบสำรองไฟ UPS", tagline:"Static UPS — Riello, Eaton, Piller",
+    description:"ระบบ UPS (Uninterruptible Power Supply) จ่ายไฟสำรองให้ Data Center ทำงานต่อเนื่องโดยไม่สะดุดเมื่อไฟหลักดับ ครอบคลุมการติดตั้ง การใช้ซอฟต์แวร์ Power Manager และการบำรุงรักษาเชิงป้องกัน",
+    howto:["ตรวจสอบโหลดและขนาด UPS ให้เหมาะกับอุปกรณ์ที่ป้องกัน","ติดตั้ง Static UPS ตามคู่มือและต่อสายกราวด์ให้ถูกต้อง","ตั้งค่าและมอนิเตอร์ผ่านซอฟต์แวร์ Power Manager","ทำ Preventive Maintenance และตรวจสภาพแบตเตอรี่ตามรอบ"],
+    videoId:"aqz-KE-bpKQ",
+    docs:[],
+    quizLink:"#",
+  },
+  { id:"monitoring", icon:"chart", color:"var(--cyan-500)", eyebrow:"MONITORING",
+    name:"Power & Environmental Monitoring", tagline:"Packet Power / EMX",
+    description:"ระบบมอนิเตอร์พลังงานและสภาพแวดล้อมแบบเรียลไทม์ ด้วย Packet Power และ EMX รองรับ Smart Power Cables และ Ethernet/Modbus Gateway เพื่อเฝ้าระวังการใช้พลังงาน อุณหภูมิ และความชื้นภายใน Data Center",
+    howto:["เข้าใช้งาน EMX Monitoring Portal และดูแดชบอร์ดรวม","ติดตั้ง Smart Power Cables เพื่อวัดการใช้พลังงานรายจุด","เชื่อมต่อ Ethernet Gateway เข้ากับระบบเครือข่าย","ตั้งค่า Alerts & Policies เพื่อแจ้งเตือนเมื่อค่าผิดปกติ"],
+    videoId:"ScMzIvxBSi4",
+    docs:[],
+    quizLink:"#",
+  },
+  { id:"cooling", icon:"snow", color:"var(--blue-400)", eyebrow:"COOLING",
+    name:"ระบบทำความเย็น STULZ", tagline:"Precision Cooling สำหรับ Data Center",
+    description:"STULZ คือระบบ Precision Cooling ที่ควบคุมอุณหภูมิและความชื้นได้อย่างแม่นยำ เพื่อให้อุปกรณ์ใน Data Center ทำงานในสภาวะที่เหมาะสมตลอด 24 ชั่วโมง ครอบคลุมหลักการทำงาน การติดตั้ง CRAC Unit และการควบคุมค่า",
+    howto:["เข้าใจหลักการ Precision Cooling และความสำคัญต่อ Data Center","ติดตั้ง CRAC Unit และวางตำแหน่งลมเย็น/ลมร้อนให้ถูกต้อง","ตั้งค่าควบคุมอุณหภูมิและความชื้นให้อยู่ในเกณฑ์","ตรวจสอบฟิลเตอร์และประสิทธิภาพการทำความเย็นเป็นระยะ"],
+    videoId:"aqz-KE-bpKQ",
+    docs:[],
+    quizLink:"#",
+  },
+  { id:"fire", icon:"droplet", color:"var(--red-500)", eyebrow:"FIRE SUPPRESSION",
+    name:"ระบบดับเพลิง HI-FOG", tagline:"Water Mist — มาตรฐาน NFPA 750",
+    description:"HI-FOG เป็นระบบดับเพลิงด้วยหมอกน้ำ (Water Mist) แรงดันสูง ที่ใช้น้ำปริมาณน้อยแต่ดับไฟได้อย่างมีประสิทธิภาพและปลอดภัยต่ออุปกรณ์อิเล็กทรอนิกส์ ออกแบบตามมาตรฐาน NFPA 750 สำหรับ Data Center โดยเฉพาะ",
+    howto:["เข้าใจหลักการดับเพลิงด้วยหมอกน้ำ (Water Mist)","ศึกษาข้อกำหนดตามมาตรฐาน NFPA 750 โดยสรุป","ตรวจสอบและตั้งค่า Pre-action Valve ให้พร้อมทำงาน","ทดสอบระบบและซ้อมแผนตอบสนองเหตุเพลิงไหม้"],
+    videoId:"ScMzIvxBSi4",
+    docs:[],
+    quizLink:"#",
+  },
+  { id:"roadblocker", icon:"shield", color:"var(--blue-700)", eyebrow:"SECURITY",
+    name:"Road Blocker & Access Control", tagline:"Boon Edam — ระบบกั้นทาง / ควบคุมการเข้าออก",
+    description:"Road Blocker คืออุปกรณ์กั้นขวางยานพาหนะสำหรับจุดคัดกรองความปลอดภัย ใช้คู่กับระบบควบคุมการเข้าออก (Access Control) ของ Boon Edam เพื่อป้องกันการบุกรุกเข้าพื้นที่ Data Center ครอบคลุมหลักการทำงาน การติดตั้ง และความปลอดภัยในการใช้งาน",
+    howto:["เข้าใจหน้าที่ของ Road Blocker ในระบบรักษาความปลอดภัย","ศึกษาขั้นตอนการยก/ลดที่กั้นอย่างปลอดภัย","ตรวจสอบระบบควบคุมและสัญญาณเตือนก่อนใช้งาน","ปฏิบัติตามขั้นตอนความปลอดภัยเมื่อมีรถผ่าน"],
+    videoId:"https://drive.google.com/file/d/1dg3bmifq5HzEGKOnWDgsdT69ybzqPZ-B/view?usp=drive_link",
+    docs:[
+      {title:"เอกสารประกอบการเรียน Road Blocker", url:"https://drive.google.com/file/d/1-KAdRdCyrxL7RBONebfWgbYOxXu_fEDJ/view?usp=drive_link"},
+    ],
+    quizLink:"https://forms.gle/KzcGoX8dUNvXVEjM7",
+  },
+];
+
+/* ============================================================ 2) ICONS ============================================================ */
+const ICONS = {
+  building:'<path d="M3 21h18M5 21V5a1 1 0 011-1h8a1 1 0 011 1v16M15 21V9h3a1 1 0 011 1v11M8 7h2M8 11h2M8 15h2"/>',
+  zap:'<path d="M13 2L4.5 13.5H11l-1 8.5L18.5 10H12z"/>',
+  chart:'<path d="M3 3v18h18M8 16v-5M13 16V8M18 16v-9"/>',
+  snow:'<path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12M2 12h20"/>',
+  droplet:'<path d="M12 2.5S6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  doc:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
+  play:'<path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+};
+const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
+
+/* ============================================================ 3) STATE + HELPERS ============================================================ */
+let currentId = PRODUCTS[0].id;
+const passed = {};
+const getProduct = id => PRODUCTS.find(p=>p.id===id);
+
+// แปลงค่าวิดีโอเป็นลิงก์ฝัง — รองรับ YouTube และ Google Drive
+function videoEmbed(p){
+  const v = (p.videoId || p.video || "").trim();
+  if(v.includes("drive.google.com")){
+    const m = v.match(/\/d\/([^/]+)/) || v.match(/[?&]id=([^&]+)/);
+    if(m) return "https://drive.google.com/file/d/"+m[1]+"/preview";
+  }
+  const yt = v.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/);
+  const id = yt ? yt[1] : v;
+  return "https://www.youtube.com/embed/"+id;
+}
+
+/* ============================================================ 4) progress ring รวม ============================================================ */
+function renderOverall(){
+  const total = PRODUCTS.length;
+  const done = Object.values(passed).filter(Boolean).length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById("overallText").textContent = `${done} / ${total} หลักสูตร`;
+  document.getElementById("overallRing").innerHTML = `
+    <path d="M18 2.1a15.9 15.9 0 110 31.8 15.9 15.9 0 010-31.8" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3.6"/>
+    <path d="M18 2.1a15.9 15.9 0 110 31.8 15.9 15.9 0 010-31.8" fill="none" stroke="var(--cyan-400)" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="${pct},100"/>
+    <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="var(--font-mono)">${pct}%</text>`;
+}
+
+/* ============================================================ 5) เมนู sidebar (ค้นหา) ============================================================ */
+function renderNav(keyword=""){
+  const nav = document.getElementById("productNav");
+  const k = keyword.trim().toLowerCase();
+  const list = PRODUCTS.filter(p=>p.name.toLowerCase().includes(k)||p.tagline.toLowerCase().includes(k));
+  document.getElementById("noResult").style.display = list.length ? "none" : "block";
+  nav.innerHTML = "";
+  list.forEach(p=>{
+    const btn = document.createElement("button");
+    btn.className = "nav-item"+(p.id===currentId?" active":"");
+    btn.innerHTML = `${svg(p.icon)}<span class="ni-text">${p.name}</span><span class="ni-dot${passed[p.id]?' done':''}"></span>`;
+    btn.onclick = ()=>selectProduct(p.id);
+    nav.appendChild(btn);
+  });
+}
+
+/* ============================================================ 6) เลือกผลิตภัณฑ์ ============================================================ */
+function selectProduct(id){
+  currentId = id;
+  renderNav(document.getElementById("searchInput").value);
+  renderContent();
+  document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ============================================================ 7) เนื้อหาหลัก: ข้อมูล + วิดีโอ + เอกสาร + แบบทดสอบ ============================================================ */
+function renderContent(){
+  const p = getProduct(currentId);
+  const howto = p.howto.map((s,i)=>`<li><span class="num">${i+1}</span><span class="t">${s}</span></li>`).join("");
+  // การ์ดเอกสาร (แสดงเฉพาะบทที่มี docs)
+  const docsCard = (p.docs && p.docs.length) ? `
+      <div class="card">
+        <h3 class="section-title">${svg("doc")} เอกสารประกอบการเรียน</h3>
+        <div class="doc-list">
+          ${p.docs.map(d=>`<a class="doc-item" href="${d.url}" target="_blank" rel="noopener"><span class="di-ic">${svg("doc")}</span><span>${d.title}</span><span class="di-go">${svg("arrow")}</span></a>`).join("")}
+        </div>
+      </div>` : "";
+
+  document.getElementById("contentArea").innerHTML = `
+    <div class="stack fade-in">
+      <div class="card">
+        <div class="product-head">
+          <div class="product-icon" style="background:${p.color}">${svg(p.icon)}</div>
+          <div><div class="eyebrow">${p.eyebrow}</div><h2>${p.name}</h2><div class="tagline">${p.tagline}</div></div>
+        </div>
+        <p class="desc">${p.description}</p>
+        <h3 class="section-title" style="margin-top:22px">วิธีการใช้งานเบื้องต้น</h3>
+        <ul class="howto">${howto}</ul>
+      </div>
+      <div class="card">
+        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
+        <div class="video-wrap">
+          <iframe src="${videoEmbed(p)}" title="วิดีโอสอน ${p.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="video-meta"><span class="pill">MODULE</span> หลักสูตร ${p.name} · ดูจบแล้วทำแบบทดสอบด้านล่าง</div>
+      </div>
+      ${docsCard}
+      <div class="card">
+        <div class="eyebrow">POST-TEST</div>
+        <h3 class="section-title" style="margin-top:4px">แบบทดสอบท้ายบท</h3>
+        <p style="margin-top:-8px;color:var(--text-muted);font-size:14px">ทำแบบทดสอบท้ายบทเพื่อวัดความเข้าใจ เมื่อทำเสร็จแล้วกด “ทำเครื่องหมายว่าเรียนจบ” เพื่อบันทึกความคืบหน้า</p>
+        <div class="quiz-actions">${quizBtn(p)}${doneBtn(p)}</div>
+      </div>
+    </div>`;
+}
+
+/* ============================================================ 8) แบบทดสอบ (ลิงก์) + ทำเครื่องหมายเรียนจบ ============================================================ */
+function quizBtn(p){
+  const has = p.quizLink && p.quizLink !== "#";
+  return has
+    ? `<a class="btn btn-primary" href="${p.quizLink}" target="_blank" rel="noopener">${svg("arrow")} ทำแบบทดสอบท้ายบท</a>`
+    : `<span class="quiz-nolink">⚠ ยังไม่ได้ใส่ลิงก์ข้อสอบ (แก้ที่ช่อง quizLink)</span>`;
+}
+function doneBtn(p){
+  return passed[p.id]
+    ? `<button class="btn btn-done" onclick="toggleDone('${p.id}')">${svg("check")} เรียนจบบทนี้แล้ว (กดเพื่อยกเลิก)</button>`
+    : `<button class="btn btn-ghost" onclick="toggleDone('${p.id}')">ทำเครื่องหมายว่าเรียนจบ</button>`;
+}
+function toggleDone(id){
+  passed[id] = !passed[id];
+  renderOverall();
+  renderNav(document.getElementById("searchInput").value);
+  renderContent();
+}
+
+/* ============================================================ 9) ระบบล็อกอิน ============================================================ */
+const SITEM_DOMAIN = "@sitem.co.th";   // โดเมนอีเมลบริษัท
+// *** วาง OAuth Client ID จาก Google Cloud ตรงนี้ เพื่อเปิดใช้ "Sign in with Google" จริง (ดูคู่มือ) ***
+const GOOGLE_CLIENT_ID = "";
+
+let currentUser = null;
+function initialsOf(name){
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0]||"") + (parts[1]?.[0]||"")).toUpperCase() || "U";
+}
+function showApp(user){
+  currentUser = user;
+  document.getElementById("userName").textContent  = user.name;
+  document.getElementById("userEmail").textContent = user.email;
+  const av = document.getElementById("userAvatar");
+  av.innerHTML = user.picture ? `<img src="${user.picture}" alt="">` : initialsOf(user.name);
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("appLayout").classList.add("show");
+}
+function logout(){
+  localStorage.removeItem("sitem_user");
+  currentUser = null;
+  document.getElementById("appLayout").classList.remove("show");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("loginForm").reset();
+}
+
+// --- ทางเข้าสำรอง: กรอกอีเมล (ด่านกรองเบื้องต้น) ---
+document.getElementById("loginForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name  = document.getElementById("loginName").value.trim();
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const err   = document.getElementById("loginErr");
+  if(!email.endsWith(SITEM_DOMAIN)){
+    err.textContent = "กรุณาใช้อีเมลบริษัทที่ลงท้ายด้วย " + SITEM_DOMAIN;
+    return;
+  }
+  err.textContent = "";
+  const user = { name, email };
+  localStorage.setItem("sitem_user", JSON.stringify(user));
+  showApp(user);
+});
+document.getElementById("logoutBtn").addEventListener("click", logout);
+
+// --- Sign in with Google จริง ---
+function decodeJwt(t){ // ถอดข้อมูลจาก token ของ Google
+  try{ return JSON.parse(decodeURIComponent(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""))); }
+  catch(e){ return {}; }
+}
+function handleGoogleCredential(resp){
+  const info = decodeJwt(resp.credential);
+  const email = (info.email||"").toLowerCase();
+  if(!email.endsWith(SITEM_DOMAIN)){
+    document.getElementById("loginErr").textContent = "ต้องเข้าด้วยบัญชี " + SITEM_DOMAIN + " เท่านั้น";
+    return;
+  }
+  const user = { name: info.name || email, email, picture: info.picture || "" };
+  localStorage.setItem("sitem_user", JSON.stringify(user));
+  showApp(user);
+}
+function initGoogle(){
+  if(!GOOGLE_CLIENT_ID || !(window.google && google.accounts)) return;
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, hd:"sitem.co.th" });
+  google.accounts.id.renderButton(document.getElementById("gsiBtn"), { theme:"outline", size:"large", width:320, text:"signin_with", shape:"pill" });
+  document.getElementById("gsiWrap").style.display = "flex";   // โชว์ปุ่ม Google
+  document.getElementById("loginOr").style.display = "flex";   // โชว์เส้นคั่น "หรือ"
+}
+window.onGoogleLibraryLoad = initGoogle;          // เรียกเมื่อไลบรารี Google โหลดเสร็จ
+if(window.google && google.accounts) initGoogle();// เผื่อโหลดเสร็จไปก่อนแล้ว
+
+/* ============================================================ 10) EVENTS + INIT ============================================================ */
+document.getElementById("searchInput").addEventListener("input",e=>renderNav(e.target.value));
+renderNav(); renderOverall(); renderContent();
+const _saved = localStorage.getItem("sitem_user");
+if(_saved){ try{ showApp(JSON.parse(_saved)); }catch(e){} }
+</script>
+</body>
+</html>
