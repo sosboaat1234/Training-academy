@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELSA 3L-DF/SP — เครื่องจำลองการกดเครื่องมือ (สื่อการสอน)</title>
+<style>
+  :root{
+    --elsa-blue:#1577b8;
+    --elsa-blue-dark:#0d5688;
+    --elsa-blue-deep:#0a4368;
+    --enclosure:#e9ebee;
+    --enclosure-edge:#c3c8ce;
+    --bezel:#2a2e33;
+    --lcd-bg:#9bb43f;
+    --lcd-bg-dim:#3a4a18;
+    --lcd-text:#14200a;
+    --btn:#f5c542;
+    --btn-edge:#c89512;
+    --btn-press:#e0a91f;
+    --led-off:#3a3f45;
+    --green:#33d35a;
+    --red:#ff3b30;
+    --amber:#ffae00;
+    --console:#161d26;
+    --console-2:#1f2935;
+    --console-line:#2c3947;
+    --ink:#dbe4ee;
+    --ink-dim:#8a99a8;
+    --accent:#5ec8ff;
+    --warn:#ff7a59;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans Thai",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #2a3340 0%, transparent 60%),
+      linear-gradient(160deg,#10151c 0%,#1a222c 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding:28px 18px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.page{margin-bottom:22px}
+  header.page h1{
+    font-size:22px;margin:0 0 4px;font-weight:700;letter-spacing:.2px;
+  }
+  header.page p{margin:0;color:var(--ink-dim);font-size:14px;line-height:1.5}
+  .tagpill{
+    display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);border:1px solid #2f4a5e;border-radius:999px;
+    padding:3px 10px;margin-bottom:10px;background:#10222e;
+  }
+  .layout{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+
+  /* ===== DEVICE ===== */
+  .device{
+    background:linear-gradient(180deg,#f4f6f8,#dfe3e8);
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 24px 50px rgba(0,0,0,.45), inset 0 1px 0 #fff;
+    border:1px solid var(--enclosure-edge);
+  }
+  .faceplate{
+    background:linear-gradient(165deg,var(--elsa-blue) 0%,var(--elsa-blue-dark) 55%,var(--elsa-blue-deep) 100%);
+    border-radius:12px;
+    padding:20px 20px 18px;
+    position:relative;
+    box-shadow:inset 0 2px 6px rgba(255,255,255,.18), inset 0 -10px 24px rgba(0,0,0,.32);
+  }
+  .corner-screw{position:absolute;width:12px;height:12px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fbfdff,#9aa3ab 60%,#6b7178);
+    box-shadow:0 1px 2px rgba(0,0,0,.5)}
+  .corner-screw::after{content:"";position:absolute;inset:3px;border-top:1.5px solid #5a6068;transform:rotate(35deg)}
+  .cs1{top:8px;left:8px}.cs2{top:8px;right:8px}.cs3{bottom:8px;left:8px}.cs4{bottom:8px;right:8px}
+
+  .top-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start}
+
+  /* LCD */
+  .lcd-frame{
+    background:var(--bezel);border-radius:8px;padding:10px;
+    box-shadow:inset 0 0 0 2px #4a4f55, 0 4px 10px rgba(0,0,0,.4);
+  }
+  .lcd{
+    background:var(--lcd-bg-dim);
+    border-radius:4px;
+    padding:12px 12px;
+    font-family:"DejaVu Sans Mono","Consolas",ui-monospace,monospace;
+    font-size:17px;
+    line-height:1.5;
+    letter-spacing:1.5px;
+    color:#5a6b2a;
+    min-height:118px;
+    transition:background .15s, color .15s, box-shadow .15s;
+    white-space:pre;
+  }
+  .lcd.on{
+    background:var(--lcd-bg);
+    color:var(--lcd-text);
+    box-shadow:inset 0 0 18px rgba(0,0,0,.25), 0 0 22px rgba(155,180,63,.35);
+    text-shadow:0 1px 0 rgba(255,255,255,.18);
+  }
+  .lcd .row{display:block;height:25px;overflow:hidden}
+
+  /* Buttons column */
+  .btns{display:flex;flex-direction:column;gap:11px;padding-top:2px}
+  .btn{
+    width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;
+    background:radial-gradient(circle at 35% 30%,#ffe08a,var(--btn) 55%,var(--btn-press));
+    box-shadow:0 4px 0 var(--btn-edge), 0 6px 10px rgba(0,0,0,.35), inset 0 1px 2px rgba(255,255,255,.6);
+    color:#5a3d00;font-size:20px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;transition:transform .05s, box-shadow .05s;
+    user-select:none;
+  }
+  .btn:active,.btn.flash{transform:translateY(4px);box-shadow:0 0 0 var(--btn-edge),0 2px 5px rgba(0,0,0,.4),inset 0 1px 2px rgba(255,255,255,.5)}
+  .btn .num{position:absolute;left:-15px;top:50%;transform:translateY(-50%);
+    color:#eaf2ff;font-size:12px;font-weight:700;font-family:monospace}
+  .btn .sub{position:absolute;right:-2px;bottom:-15px;font-size:9px;color:#cfe3f5;font-weight:600;white-space:nowrap}
+  .btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+  /* brand + LEDs */
+  .brandrow{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px}
+  .leds{display:flex;gap:22px}
+  .led-unit{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .led{width:15px;height:15px;border-radius:50%;background:var(--led-off);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.6);transition:all .12s}
+  .led-unit span{font-size:10px;letter-spacing:.08em;color:#dceaf6;font-weight:600}
+  .led.power.on{background:var(--green);box-shadow:0 0 12px var(--green),inset 0 0 3px #0a4}
+  .led.leak.on{background:var(--red);box-shadow:0 0 14px var(--red),inset 0 0 3px #800}
+  .led.trouble.on{background:var(--amber);box-shadow:0 0 14px var(--amber),inset 0 0 3px #840}
+  .led.blink{animation:ledblink .5s steps(1) infinite}
+  @keyframes ledblink{50%{background:var(--led-off);box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}}
+  .brand{ text-align:right;line-height:1}
+  .brand .e{font-size:30px;font-weight:800;font-style:italic;color:#eaf4fb;letter-spacing:-1px;
+    text-shadow:0 2px 4px rgba(0,0,0,.4)}
+  .brand .s{font-size:10px;letter-spacing:.32em;color:#bcd8ee;font-weight:600}
+  .model{font-size:10px;color:#bcd8ee;text-align:right;margin-top:4px;letter-spacing:.05em}
+  .glands{display:flex;justify-content:space-around;margin-top:16px;padding:0 12px}
+  .gland{width:26px;height:16px;border-radius:0 0 6px 6px;
+    background:linear-gradient(180deg,#aeb4ba,#80868c);box-shadow:0 3px 5px rgba(0,0,0,.3)}
+
+  .buzzer-tag{
+    margin-top:14px;font-size:12px;color:#0d5688;text-align:center;font-weight:600;
+    min-height:18px;letter-spacing:.04em;
+  }
+  .buzzer-tag.active{color:#b22}
+
+  /* ===== INSTRUCTOR CONSOLE ===== */
+  .console{
+    background:linear-gradient(180deg,var(--console),var(--console-2));
+    border:1px solid var(--console-line);border-radius:16px;padding:18px;
+    box-shadow:0 18px 40px rgba(0,0,0,.4);
+  }
+  .console h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    margin:0 0 4px}
+  .console .hint{font-size:12px;color:var(--ink-dim);margin:0 0 16px;line-height:1.5}
+  .cgroup{border-top:1px solid var(--console-line);padding-top:14px;margin-top:14px}
+  .cgroup:first-of-type{border-top:none;padding-top:0;margin-top:0}
+  .cgroup .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:9px;font-weight:700}
+  .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .cbtn{
+    background:#243140;color:var(--ink);border:1px solid #34465a;border-radius:9px;
+    padding:9px 13px;font-size:13px;cursor:pointer;font-weight:600;
+    transition:background .12s,border-color .12s,transform .05s;font-family:inherit;
+  }
+  .cbtn:hover{background:#2d3e50;border-color:#4a6076}
+  .cbtn:active{transform:translateY(1px)}
+  .cbtn.power{background:#16412a;border-color:#1f7a45;color:#8ff0b4}
+  .cbtn.power.on{background:#7a1f1f;border-color:#b23;color:#ffc2c2}
+  .cbtn.leak{background:#3a1414;border-color:#8a2a22;color:#ffb3ab}
+  .cbtn.break{background:#3a2e0c;border-color:#8a6a1a;color:#ffdd8a}
+  .cbtn.clear{background:#15303f;border-color:#27617e;color:#9fe0ff}
+  .cbtn.tiny{padding:6px 10px;font-size:12px}
+  .field{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-dim)}
+  .field select,.field input{
+    background:#1a232e;color:var(--ink);border:1px solid #34465a;border-radius:7px;
+    padding:6px 8px;font-size:13px;font-family:inherit;
+  }
+  .actionlog{
+    margin-top:16px;background:#0d131a;border:1px solid #233140;border-radius:10px;
+    padding:10px 12px;height:130px;overflow-y:auto;font-size:12px;line-height:1.6;
+    font-family:ui-monospace,monospace;color:#9fb6cc;
+  }
+  .actionlog .e{color:var(--accent)}
+  .actionlog .ok{color:#7be0a0}
+  .actionlog .al{color:#ff9a8a}
+  .soundtoggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim);margin-top:14px}
+  .switch{position:relative;width:40px;height:22px;background:#2a3a4a;border-radius:999px;cursor:pointer;transition:background .15s}
+  .switch.on{background:#1f7a45}
+  .switch .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#cfe;transition:left .15s}
+  .switch.on .knob{left:20px}
+
+  /* ===== TRAINING STEPS ===== */
+  .guide{
+    margin-top:24px;background:#10171f;border:1px solid #233140;border-radius:16px;padding:20px;
+  }
+  .guide h2{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .step{background:#161f29;border:1px solid #2a3947;border-radius:11px;padding:14px}
+  .step .n{font-family:monospace;font-size:12px;color:var(--btn);font-weight:700;letter-spacing:.1em}
+  .step h3{font-size:14px;margin:6px 0 7px;color:var(--ink)}
+  .step p{font-size:12.5px;color:var(--ink-dim);line-height:1.55;margin:0}
+  .step kbd{background:#243140;border:1px solid #3a4c60;border-radius:5px;padding:1px 6px;font-size:11px;color:#dbe9f7;font-family:monospace}
+  footer.note{margin-top:22px;font-size:12px;color:#56646f;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <span class="tagpill">สื่อฝึกอบรม · Training Simulator</span>
+    <h1>ELSA 3L-DF/SP — เครื่องจำลองการกดเครื่องมือ</h1>
+    <p>แผงควบคุมระบบตรวจจับรอยรั่วของเหลว (Liquid Leak Locating Panel) · ให้พนักงานใหม่ลองกดปุ่ม ไล่เมนู และฝึกรับมือสถานการณ์รั่ว/สายขาด เหมือนเครื่องจริง</p>
+  </header>
+
+  <div class="layout">
+    <!-- ===================== DEVICE ===================== -->
+    <div class="device">
+      <div class="faceplate">
+        <span class="corner-screw cs1"></span><span class="corner-screw cs2"></span>
+        <span class="corner-screw cs3"></span><span class="corner-screw cs4"></span>
+
+        <div class="top-row">
+          <div class="lcd-frame">
+            <div class="lcd" id="lcd">
+              <span class="row" id="r0"></span>
+              <span class="row" id="r1"></span>
+              <span class="row" id="r2"></span>
+              <span class="row" id="r3"></span>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button class="btn" id="b1"><span class="num">1</span>▲</button>
+            <button class="btn" id="b2"><span class="num">2</span>✓</button>
+            <button class="btn" id="b3"><span class="num">3</span>▼</button>
+            <button class="btn" id="b4"><span class="num">4</span>⚙<span class="sub">SETUP</span></button>
+            <button class="btn" id="b5"><span class="num">5</span>⌀<span class="sub">SILENCE</span></button>
+          </div>
+        </div>
+
+        <div class="brandrow">
+          <div class="leds">
+            <div class="led-unit"><div class="led power" id="ledPower"></div><span>POWER</span></div>
+            <div class="led-unit"><div class="led leak" id="ledLeak"></div><span>LEAK</span></div>
+            <div class="led-unit"><div class="led trouble" id="ledTrouble"></div><span>TROUBLE</span></div>
+          </div>
+          <div>
+            <div class="brand"><span class="e">ELSA</span><br><span class="s">ADVANCED SYSTEMS</span></div>
+            <div class="model">3L-DF/SP · LEAK LOCATING PANEL</div>
+          </div>
+        </div>
+
+        <div class="glands">
+          <div class="gland"></div><div class="gland"></div><div class="gland"></div><div class="gland"></div>
+        </div>
+      </div>
+      <div class="buzzer-tag" id="buzzerTag"></div>
+    </div>
+
+    <!-- ===================== INSTRUCTOR CONSOLE ===================== -->
+    <div class="console">
+      <h2>แผงครูฝึก · Instructor Controls</h2>
+      <p class="hint">ส่วนนี้ไม่มีบนเครื่องจริง — ใช้สั่งจำลองสถานการณ์ให้เด็กใหม่กดปุ่มบนเครื่องเพื่อตอบสนอง</p>
+
+      <div class="cgroup">
+        <div class="lab">ไฟเลี้ยง · Power</div>
+        <div class="ctrl">
+          <button class="cbtn power" id="powerBtn">เปิดเครื่อง (Switch ON)</button>
+        </div>
+      </div>
+
+      <div class="cgroup">
+        <div class="lab">จำลองรอยรั่ว · Simulate Leak</div>
+        <div class="ctrl">
+          <span class="field">โซน
+            <select id="leakZone"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+          </span>
+          <span class="field">ระยะ(m)
+            <input id="leakLoc" type="number" value="10" min="1" max="50" style="width:60px">
+          </span>
+          <span class="field">ระดับ(1-9)
+            <input id="leakLvl" type="number" value="5" min="1" max="9" style="width:55px">
+          </span>
+          <button class="cbtn leak" id="leakBtn">ปล่อยน้ำ (รั่ว)</button>
+          <button class="cbtn clear" id="leakClearBtn">เช็ดแห้ง / Clear</button>
+        </div>
+      </div>
+
+      <div class="cgroup">
+        <div class="lab">จำลองสายขาด · Cable Break</div>
+        <div class="ctrl">
+          <span class="field">โซน
+            <select id="breakZone"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+          </span>
+          <button class="cbtn break" id="breakBtn">ถอดสาย (สายขาด)</button>
+          <button class="cbtn clear" id="breakClearBtn">ต่อสายกลับ / Clear</button>
+        </div>
+      </div>
+
+      <div class="soundtoggle">
+        <div class="switch on" id="soundSwitch"><div class="knob"></div></div>
+        <span>เสียงจำลอง (ปุ่มกด + บัซเซอร์)</span>
+      </div>
+
+      <div class="actionlog" id="log"></div>
+    </div>
+  </div>
+
+  <!-- ===================== TRAINING STEPS ===================== -->
+  <div class="guide">
+    <h2>ใบงานฝึก · Suggested training flow</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">STEP 1</div><h3>เปิดเครื่อง</h3>
+        <p>กด <kbd>เปิดเครื่อง</kbd> สังเกตลำดับ Self-test: บัซเซอร์ดังสั้น ไฟ LEAK+TROUBLE ติดราว 1 วินาที จากนั้น POWER เป็นสีเขียว และจอขึ้น “SUPERVISION &lt;ON&gt;”</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 2</div><h3>เข้าเมนู</h3>
+        <p>กด <kbd>⚙ 4</kbd> เพื่อเข้าเมนู ใช้ <kbd>▲ 1</kbd>/<kbd>▼ 3</kbd> เลื่อน และ <kbd>✓ 2</kbd> เลือก ลองเปิด Sensor Lengths และ Event Log</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 3</div><h3>ตั้งค่า (รหัสผ่าน)</h3>
+        <p>เข้า System Setup จะถามรหัส กดปุ่มเป็นตัวเลข <kbd>1 2 3 4 1 2 3 4</kbd> แล้วลองปรับ Alarm Threshold ด้วย <kbd>▲</kbd>/<kbd>▼</kbd></p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 4</div><h3>รับมือรอยรั่ว</h3>
+        <p>ให้ครูกด “ปล่อยน้ำ” → ไฟ LEAK แดง จอขึ้นโซน+ระยะ บัซเซอร์ดังต่อเนื่อง เด็กใหม่กด <kbd>⌀ 5</kbd> ปิดเสียง แล้วครูกด “เช็ดแห้ง” ให้ระบบเคลียร์เอง</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 5</div><h3>รับมือสายขาด</h3>
+        <p>ครูกด “ถอดสาย” → ไฟ TROUBLE เหลือง จอขึ้น CABLE BREAK + COMM LOSS บัซเซอร์ดังเป็นจังหวะ กด <kbd>⌀ 5</kbd> ปิดเสียง แล้ว “ต่อสายกลับ”</p>
+      </div>
+      <div class="step">
+        <div class="n">จุดที่มักพลาด</div><h3>เกร็ดสอน</h3>
+        <p>ระดับรั่วต่ำกว่า Threshold จะ <b>ไม่</b> ปลุกสัญญาณ (ลองตั้ง Threshold = 5 แล้วปล่อยรั่วระดับ 3 ดู) · เครื่องจริงใช้เวลาแสดงผลราว 18 วินาที</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">
+    อ้างอิงจากคู่มือ 3L-DF/SP (Digi-Flex System) User Guide 2017 Rev 3 ของ ELSA Advanced Systems · เครื่องจำลองนี้ลดเวลาแสดงผลให้เร็วกว่าจริงเพื่อการสอน และเป็นภาพจำลองหน้าจอ ไม่ใช่ค่าจากเครื่องจริง
+  </footer>
+</div>
+
+<script>
+"use strict";
+const LCD_W = 20;
+const PASSWORD = "12341234";
+
+const state = {
+  power:false, screen:"off",
+  alarms:[],             // list of {type:'leak',zone,loc,lvl} | {type:'break',zone}
+  alarmIdx:0, alarmBlink:true,   // which alarm shown when cycling + header blink phase
+  buzzer:"off",          // off | continuous | intermittent
+  silenced:false,
+  threshold:5, soundEnabled:true, monitoring:true, modbus:1,
+  cursor:0, pwBuf:"", pwTarget:null,
+  events:[], evIdx:0,
+  timeOffsetMs:0,        // device clock offset from real time (set via Time/Date Setup)
+  td:null, tdCursor:0, blinkOn:true,   // time/date edit buffer + blinking cursor
+  sim:{sound:true}
+};
+
+const lcdEl=[0,1,2,3].map(i=>document.getElementById("r"+i));
+const lcdBox=document.getElementById("lcd");
+const buzzerTag=document.getElementById("buzzerTag");
+
+/* ---------- audio ---------- */
+let audioCtx=null, buzzNode=null, buzzInt=null;
+function ensureAudio(){ if(!audioCtx){ try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } }
+function beep(dur=120,freq=2200,vol=0.06){
+  if(!state.sim.sound) return; ensureAudio(); if(!audioCtx) return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type="square";o.frequency.value=freq;g.gain.value=vol;
+  o.connect(g);g.connect(audioCtx.destination);o.start();
+  setTimeout(()=>{o.stop();},dur);
+}
+function startBuzzer(mode){
+  stopBuzzerSound();
+  state.buzzer=mode; state.silenced=false;
+  renderBuzzer();
+  if(!state.sim.sound) return;
+  if(mode==="continuous"){ buzzInt=setInterval(()=>beep(180,2300,0.05),230); }
+  else if(mode==="intermittent"){ buzzInt=setInterval(()=>beep(140,1900,0.05),700); }
+}
+function stopBuzzerSound(){ if(buzzInt){clearInterval(buzzInt);buzzInt=null;} }
+function silence(){
+  if(state.buzzer!=="off"){ state.silenced=true; stopBuzzerSound(); renderBuzzer(); logLine("กด SILENCE — ปิดเสียงบัซเซอร์ (ไฟยังกระพริบ)"); beep(60,1500,0.04); }
+}
+/* short mechanical click on every key press */
+function keyClick(){ beep(28,3200,0.035); }
+
+/* alarm loop: blink header + cycle between multiple leaks */
+let alarmInt=null, alarmTick=0;
+function startAlarmLoop(){
+  if(alarmInt) return;
+  alarmTick=0; state.alarmBlink=true;
+  alarmInt=setInterval(()=>{
+    alarmTick++;
+    state.alarmBlink=!state.alarmBlink;
+    if(state.alarms.length>1 && alarmTick%5===0){
+      state.alarmIdx=(state.alarmIdx+1)%state.alarms.length;
+    }
+    if(state.alarms.length>0 && (state.screen==="normal"||state.screen==="off")) renderAlarm();
+  },560);
+}
+function stopAlarmLoop(){ if(alarmInt){clearInterval(alarmInt);alarmInt=null;} state.alarmBlink=true; }
+function renderBuzzer(){
+  if(state.buzzer==="off"||state.silenced){
+    buzzerTag.textContent = state.silenced && state.buzzer!=="off" ? "🔇 บัซเซอร์: ปิดเสียงแล้ว (Silenced)" : "";
+    buzzerTag.classList.toggle("active",false);
+  }else{
+    buzzerTag.textContent = state.buzzer==="continuous" ? "🔊 บัซเซอร์ดังต่อเนื่อง (Leak)" : "🔊 บัซเซอร์ดังเป็นจังหวะ (Trouble)";
+    buzzerTag.classList.add("active");
+  }
+}
+
+/* ---------- LCD render ---------- */
+function pad(s){ s=(s||"").substring(0,LCD_W); return s+" ".repeat(LCD_W-s.length); }
+function draw(lines){
+  for(let i=0;i<4;i++) lcdEl[i].textContent = pad(lines[i]||"");
+}
+function lcdOn(on){ lcdBox.classList.toggle("on",on); }
+
+function clock(){
+  const d=new Date(Date.now()+state.timeOffsetMs);
+  const hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
+  const DD=String(d.getDate()).padStart(2,"0"), MO=String(d.getMonth()+1).padStart(2,"0"), YY=String(d.getFullYear()).slice(2);
+  return {t:hh+":"+mm, d:DD+"/"+MO+"/"+YY};
+}
+function pad2(n){ return String(n).padStart(2,"0"); }
+function daysInMonth(mo,y){ return new Date(y,mo,0).getDate(); }
+
+/* blinking cursor for Time/Date setup */
+let blinkInt=null;
+function startBlink(){ stopBlink(); state.blinkOn=true;
+  blinkInt=setInterval(()=>{ state.blinkOn=!state.blinkOn; if(state.screen==="timedate") renderTimeDate(); },420); }
+function stopBlink(){ if(blinkInt){clearInterval(blinkInt);blinkInt=null;} state.blinkOn=true; }
+
+/* ---------- LEDs ---------- */
+function setLeds(){
+  const p=document.getElementById("ledPower"), l=document.getElementById("ledLeak"), t=document.getElementById("ledTrouble");
+  [p,l,t].forEach(x=>x.classList.remove("on","blink"));
+  if(!state.power) return;
+  p.classList.add("on");
+  if(state.alarms.some(a=>a.type==="leak"))  l.classList.add("on","blink");
+  if(state.alarms.some(a=>a.type==="break")) t.classList.add("on","blink");
+}
+
+/* ---------- log ---------- */
+const logEl=document.getElementById("log");
+function logLine(msg,cls){
+  const time=clock().t;
+  const div=document.createElement("div");
+  div.innerHTML=`<span class="e">${time}</span> <span class="${cls||""}">${msg}</span>`;
+  logEl.insertBefore(div,logEl.firstChild);
+  while(logEl.children.length>20) logEl.removeChild(logEl.lastChild);
+}
+
+/* ---------- menu definitions ---------- */
+const MENU=[
+  {key:"sensor", label:"Sensor Lengths"},
+  {key:"events", label:"Event Log"},
+  {key:"sound",  label:"Sound ON/OFF", pw:true},
+  {key:"system", label:"System Setup", pw:true},
+];
+const SYSMENU=[
+  {key:"modbus",     label:"MODBUS Interface"},
+  {key:"threshold",  label:"Alarm Threshold"},
+  {key:"monitoring", label:"Monitoring ON/OFF"},
+  {key:"timedate",   label:"Time/Date Setup"},
+];
+
+/* ---------- screen renderer ---------- */
+function render(){
+  setLeds();
+  if(!state.power){ lcdOn(false); draw(["","","",""]); return; }
+  lcdOn(true);
+
+  // alarms override the home/normal screen (but menus can still be browsed)
+  if(state.screen==="normal" || state.screen==="off"){
+    if(state.alarms.length){ return renderAlarm(); }
+    return renderNormal();
+  }
+  switch(state.screen){
+    case "menu": return renderList("SYSTEM MENU",MENU,()=>{});
+    case "sensor": return renderSensor();
+    case "events": return renderEvents();
+    case "pw": return renderPassword();
+    case "soundtoggle": return renderSoundToggle();
+    case "sysmenu": return renderList("SYSTEM SETUP",SYSMENU,()=>{});
+    case "modbus": return renderModbus();
+    case "threshold": return renderThreshold();
+    case "monitoring": return renderMonitoring();
+    case "timedate": return renderTimeDate();
+  }
+}
+
+function renderNormal(){
+  const c=clock();
+  const top = c.t + " ".repeat(LCD_W-c.t.length-c.d.length) + c.d;
+  draw([ top, "  ELSA ADV. SYSTEMS", "  SUPERVISION  <"+(state.monitoring?"ON":"FRZ")+">", "  [4]=Menu" ]);
+}
+
+function ordinal(n){
+  const s=["th","st","nd","rd"], v=n%100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+function renderAlarm(){
+  if(state.alarms.length===0){ return renderNormal(); }
+  if(state.alarmIdx >= state.alarms.length) state.alarmIdx=0;
+  const a=state.alarms[state.alarmIdx];
+  const show=state.alarmBlink;   // blink the header line on/off
+
+  if(a.type==="leak"){
+    const leaks=state.alarms.filter(x=>x.type==="leak");
+    const ord=leaks.indexOf(a)+1, total=leaks.length;
+    let hdr;
+    if(total>1){ hdr="** LEAK "+ordinal(ord)+"  "+ord+"/"+total; }
+    else { hdr="**  LEAK  ALARM  **"; }
+    draw([ show?hdr:"", " ZONE "+a.zone, " LOCATION : "+a.loc+"m", " LEVEL "+a.lvl+"  [5]Silence" ]);
+  }else{
+    draw([ show?"* TROUBLE: CABLE BRK":"", " CURRENT  ZONE "+a.zone, " NEXT ZONE COMM LOSS", " [5]Silence" ]);
+  }
+}
+
+function renderList(title,items){
+  const lines=[title];
+  // show up to 3 items around cursor
+  let start=0;
+  if(state.cursor>2) start=state.cursor-2;
+  for(let i=start;i<start+3 && i<items.length;i++){
+    const sel = i===state.cursor ? ">" : " ";
+    const lock = items[i].pw ? " *" : "";
+    lines.push(sel+(i+1)+"."+items[i].label+lock);
+  }
+  while(lines.length<4) lines.push("");
+  draw(lines);
+}
+
+function renderSensor(){
+  const z=[ "Z1:40m","Z2:45m","Z3:45m","Z4:50m","Z5:35m" ];
+  draw([ "SENSOR LENGTHS", " "+z[0]+"   "+z[1], " "+z[2]+"   "+z[3], " "+z[4]+"   [4]Back" ]);
+}
+
+function evDesc(ev){
+  switch(ev.type){
+    case "leak":       return "LEAK at "+ev.loc+"m";
+    case "leakclear":  return "LEAK CLEARED";
+    case "break":      return "CABLE BREAK";
+    case "breakclear": return "CABLE BREAK CLEARED";
+  }
+  return ev.type;
+}
+function renderEvents(){
+  const T=state.events.length;
+  if(T===0){
+    draw([ "EVENT LOG", "  (no events yet)", "", "        [4]Back" ]);
+    return;
+  }
+  if(state.evIdx>=T) state.evIdx=T-1;
+  if(state.evIdx<0) state.evIdx=0;
+  const ev=state.events[state.evIdx];
+  const head="EVENT LOG", idxStr=(state.evIdx+1)+"/"+T;
+  const line1=head + " ".repeat(Math.max(1,LCD_W-head.length-idxStr.length)) + idxStr;
+  draw([ line1,
+         " "+ev.t+"   ZONE "+ev.zone,
+         " "+evDesc(ev),
+         "[1/3]Scroll  [4]Back" ]);
+}
+
+function renderPassword(){
+  const masked = "*".repeat(state.pwBuf.length) + "_".repeat(8-state.pwBuf.length);
+  draw([ "ENTER PASSWORD", "  "+masked, "  (keys 1-4 = digits)", " [5]Cancel" ]);
+}
+
+function renderSoundToggle(){
+  draw([ "SOUND SETUP", "  Alarm buzzer :", "      < "+(state.soundEnabled?"ON ":"OFF")+" >", " [1/3]Change [4]Back" ]);
+}
+function renderModbus(){
+  draw([ "MODBUS INTERFACE", "  Slave addr :", "      < "+String(state.modbus).padStart(3," ")+" >", " [1/3]Change [4]Back" ]);
+}
+function renderThreshold(){
+  draw([ "ALARM THRESHOLD", "  1=LOWEST 9=HIGHEST", "     < "+state.threshold+" >", " [1/3]Change [4]Back" ]);
+}
+function renderMonitoring(){
+  draw([ "MONITORING ON/OFF", "  (OFF = freeze zones)", "    < "+(state.monitoring?"ON ":"OFF")+" >", " [1/3]Change [4]Back" ]);
+}
+function blinkField(idx,str){
+  // hide the active field on the "off" phase to make it blink
+  if(state.tdCursor===idx && !state.blinkOn) return " ".repeat(str.length);
+  return str;
+}
+function renderTimeDate(){
+  const t=state.td;
+  const HH=blinkField(0,pad2(t.h)), MM=blinkField(1,pad2(t.mi));
+  const DD=blinkField(2,pad2(t.d)), MO=blinkField(3,pad2(t.mo)), YY=blinkField(4,String(t.y).slice(2));
+  draw([ "TIME / DATE SETUP",
+         "  Time   "+HH+":"+MM,
+         "  Date   "+DD+"/"+MO+"/"+YY,
+         "[2]Next [1/3]Set [4]Save" ]);
+}
+function enterTimeDate(){
+  const d=new Date(Date.now()+state.timeOffsetMs);
+  state.td={h:d.getHours(),mi:d.getMinutes(),d:d.getDate(),mo:d.getMonth()+1,y:d.getFullYear()};
+  state.tdCursor=0; state.screen="timedate";
+  startBlink(); renderTimeDate();
+  logLine("เข้าตั้งเวลา/วันที่ — [2] เลื่อนช่อง, [1/3] ปรับค่า, [4] บันทึก");
+}
+function tdAdjust(dir){
+  const t=state.td;
+  switch(state.tdCursor){
+    case 0: t.h=(t.h+dir+24)%24; break;
+    case 1: t.mi=(t.mi+dir+60)%60; break;
+    case 2: { const mx=daysInMonth(t.mo,t.y); t.d=((t.d-1+dir+mx)%mx)+1; } break;
+    case 3: { t.mo=((t.mo-1+dir+12)%12)+1; const mx=daysInMonth(t.mo,t.y); if(t.d>mx)t.d=mx; } break;
+    case 4: t.y=Math.min(2099,Math.max(2017,t.y+dir)); break;
+  }
+  renderTimeDate();
+}
+function saveTimeDate(){
+  const t=state.td;
+  const target=new Date(t.y,t.mo-1,t.d,t.h,t.mi,0,0);
+  state.timeOffsetMs = target.getTime() - Date.now();
+  stopBlink();
+  logLine(`บันทึกเวลา/วันที่: ${pad2(t.h)}:${pad2(t.mi)}  ${pad2(t.d)}/${pad2(t.mo)}/${String(t.y).slice(2)}`,"ok");
+  state.screen="sysmenu"; state.cursor=3; render();
+}
+
+/* ---------- button handling ---------- */
+function press(n){
+  flash(n);
+  keyClick();
+  if(!state.power){ logLine("กดปุ่ม "+labelFor(n)+" แต่เครื่องยังไม่เปิด"); return; }
+  if(n===5 && state.screen!=="pw"){ silence(); return; }   // silence on any screen except password entry
+
+  const s=state.screen;
+  // home/alarm screens
+  if(s==="normal"||s==="off"){
+    if(n===4){ openMenu(); }
+    return;
+  }
+  if(s==="menu"){ return navList(MENU,n,selectMenu); }
+  if(s==="sysmenu"){ return navList(SYSMENU,n,selectSysMenu); }
+  if(s==="pw"){ return pwInput(n); }
+
+  // value/info screens
+  if(s==="sensor"){
+    if(n===4){ goHomeOrBack(); }
+    return;
+  }
+  if(s==="events"){
+    if(n===1){ if(state.evIdx>0){ state.evIdx--; renderEvents(); } }
+    else if(n===3){ if(state.evIdx<state.events.length-1){ state.evIdx++; renderEvents(); } }
+    else if(n===4){ goHomeOrBack(); }
+    return;
+  }
+  if(s==="timedate"){
+    if(n===1){ tdAdjust(+1); }
+    else if(n===3){ tdAdjust(-1); }
+    else if(n===2){ state.tdCursor=(state.tdCursor+1)%5; renderTimeDate(); }
+    else if(n===4){ saveTimeDate(); }
+    return;
+  }
+  if(s==="soundtoggle"){
+    if(n===1||n===3){ state.soundEnabled=!state.soundEnabled; logLine("ตั้งเสียงบัซเซอร์: "+(state.soundEnabled?"ON":"OFF")); render(); }
+    else if(n===4){ state.screen="normal"; render(); logLine("เสร็จ Sound Setup → หน้าหลัก"); } // Sound ON/OFF is a top-level item: exit to home
+    return;
+  }
+  if(s==="threshold"){
+    if(n===1){ state.threshold=Math.min(9,state.threshold+1); render(); logLine("ปรับ Threshold = "+state.threshold); }
+    else if(n===3){ state.threshold=Math.max(1,state.threshold-1); render(); logLine("ปรับ Threshold = "+state.threshold); }
+    else if(n===4){ state.screen="sysmenu"; state.cursor=1; render(); }
+    return;
+  }
+  if(s==="modbus"){
+    if(n===1){ state.modbus=Math.min(247,state.modbus+1); render(); }
+    else if(n===3){ state.modbus=Math.max(1,state.modbus-1); render(); }
+    else if(n===4){ state.screen="sysmenu"; state.cursor=0; render(); }
+    return;
+  }
+  if(s==="monitoring"){
+    if(n===1||n===3){ state.monitoring=!state.monitoring; logLine("Monitoring: "+(state.monitoring?"ON":"OFF (freeze)")); render(); }
+    else if(n===4){ state.screen="sysmenu"; state.cursor=2; render(); }
+    return;
+  }
+}
+
+function labelFor(n){ return ({1:"▲(1)",2:"✓(2)",3:"▼(3)",4:"⚙(4)",5:"⌀(5)"})[n]; }
+
+function openMenu(){ state.screen="menu"; state.cursor=0; render(); logLine("เข้าเมนูหลัก (Setup)"); }
+
+function navList(items,n,onSelect){
+  if(n===1){ state.cursor=(state.cursor-1+items.length)%items.length; render(); }
+  else if(n===3){ state.cursor=(state.cursor+1)%items.length; render(); }
+  else if(n===2){ onSelect(items[state.cursor]); }
+  else if(n===4){ goHomeOrBack(); }
+}
+
+function selectMenu(item){
+  logLine("เลือกเมนู: "+item.label);
+  if(item.pw){ state.pwTarget=item.key; state.pwBuf=""; state.screen="pw"; render(); return; }
+  if(item.key==="sensor"){ state.screen="sensor"; render(); }
+  else if(item.key==="events"){ state.evIdx=0; state.screen="events"; render(); }
+}
+function selectSysMenu(item){
+  logLine("เข้า: "+item.label);
+  if(item.key==="timedate"){ enterTimeDate(); return; }
+  state.screen=item.key; render();
+}
+
+function pwInput(n){
+  if(n===5){ state.screen="menu"; state.cursor=0; state.pwBuf=""; render(); logLine("ยกเลิกการใส่รหัส"); return; }
+  // buttons 1-4 act as digits (password 12341234 uses only 1-4)
+  if(n>=1 && n<=4){
+    state.pwBuf += String(n);
+    render();
+    if(state.pwBuf.length===8){
+      if(state.pwBuf===PASSWORD){
+        logLine("รหัสถูกต้อง ✓","ok");
+        if(state.pwTarget==="sound"){ state.screen="soundtoggle"; }
+        else if(state.pwTarget==="system"){ state.screen="sysmenu"; state.cursor=0; }
+        state.pwBuf="";
+        render();
+      }else{
+        logLine("รหัสผิด ✗ (ลองใหม่)","al");
+        draw([ "ENTER PASSWORD", "  WRONG PASSWORD", "  try again", " [5]Cancel" ]);
+        state.pwBuf="";
+        setTimeout(render,1200);
+      }
+    }
+  }
+}
+
+function goHomeOrBack(){
+  // from sub-screens of main menu, go back to main menu; from main menu go home
+  if(state.screen==="menu"){ state.screen="normal"; logLine("ออกจากเมนู → หน้าหลัก"); }
+  else if(["sensor","events"].includes(state.screen)){ state.screen="menu"; state.cursor=0; }
+  else if(state.screen==="timedate"){ state.screen="sysmenu"; state.cursor=3; }
+  else { state.screen="normal"; }
+  render();
+}
+
+/* visual press */
+function flash(n){
+  const b=document.getElementById("b"+n);
+  if(!b) return; b.classList.add("flash");
+  setTimeout(()=>b.classList.remove("flash"),90);
+}
+
+/* ---------- power on sequence ---------- */
+function powerOn(){
+  state.power=true; state.screen="off"; state.alarms=[]; state.alarmIdx=0;
+  ensureAudio();
+  logLine("เปิดไฟเลี้ยง — เริ่ม Self-test","ok");
+  lcdOn(true);
+  // 1) buzzer momentary + LEDs all on ~1s
+  beep(400,2000,0.06);
+  document.getElementById("ledPower").classList.add("on");
+  document.getElementById("ledLeak").classList.add("on");
+  document.getElementById("ledTrouble").classList.add("on");
+  draw([ "  ELSA ADV. SYSTEMS", "  SELF-TEST ...", "  3L-DF/SP  Rev 3", "" ]);
+  setTimeout(()=>{
+    document.getElementById("ledLeak").classList.remove("on");
+    document.getElementById("ledTrouble").classList.remove("on");
+    draw([ "  INITIALIZING", "  SCANNING ZONES", "  ##########", "" ]);
+  },1100);
+  setTimeout(()=>{
+    state.screen="normal"; render();
+    logLine("Self-test ผ่าน — เข้าสู่ SUPERVISION ON","ok");
+  },2200);
+
+  // flip button
+  const pb=document.getElementById("powerBtn");
+  pb.classList.add("on"); pb.textContent="ปิดเครื่อง (Switch OFF)";
+}
+function powerOff(){
+  state.power=false; state.screen="off"; state.alarms=[]; state.alarmIdx=0;
+  stopBuzzerSound(); state.buzzer="off"; state.silenced=false; renderBuzzer();
+  stopBlink(); stopAlarmLoop();
+  render(); setLeds();
+  logLine("ปิดไฟเลี้ยง");
+  const pb=document.getElementById("powerBtn");
+  pb.classList.remove("on"); pb.textContent="เปิดเครื่อง (Switch ON)";
+}
+
+/* ---------- scenarios ---------- */
+function refreshBuzzer(reAlert){
+  const hasLeak=state.alarms.some(a=>a.type==="leak");
+  const hasBreak=state.alarms.some(a=>a.type==="break");
+  if(state.alarms.length===0){
+    stopBuzzerSound(); state.buzzer="off"; state.silenced=false; renderBuzzer();
+    stopAlarmLoop();
+    return;
+  }
+  const mode = hasLeak ? "continuous" : "intermittent"; // leak takes priority
+  if(reAlert){ startBuzzer(mode); }      // new event re-alerts even if previously silenced
+  else if(!state.silenced){ if(state.buzzer!==mode) startBuzzer(mode); }
+  else { state.buzzer=mode; renderBuzzer(); }
+  startAlarmLoop();
+}
+
+function simLeak(){
+  if(!state.power){ logLine("เปิดเครื่องก่อนจึงจะจำลองได้"); return; }
+  if(!state.monitoring){ logLine("Monitoring = OFF (freeze) ระบบไม่ตรวจจับ — เปิด Monitoring ก่อน","al"); return; }
+  const zone=document.getElementById("leakZone").value;
+  const loc=parseInt(document.getElementById("leakLoc").value)||10;
+  const lvl=parseInt(document.getElementById("leakLvl").value)||5;
+  if(lvl < state.threshold){
+    logLine(`ปล่อยน้ำโซน ${zone} ระดับ ${lvl} แต่ต่ำกว่า Threshold (${state.threshold}) → ไม่ปลุกสัญญาณ`,"al");
+    if(state.screen==="normal" && state.alarms.length===0){ draw(["  (raw leak lvl "+lvl+")","  below threshold","  no alarm","  "]); setTimeout(render,1500); }
+    return;
+  }
+  // 1 leak per zone (per manual). same zone -> update; new zone -> add point
+  const ex=state.alarms.find(a=>a.type==="leak" && a.zone===zone);
+  if(ex){ ex.loc=loc; ex.lvl=lvl; }
+  else state.alarms.push({type:"leak",zone,loc,lvl});
+
+  state.screen="normal";
+  refreshBuzzer(true);
+  pushEvent(zone,"leak",loc);
+  render();
+  const nLeak=state.alarms.filter(a=>a.type==="leak").length;
+  logLine(`รั่ว! โซน ${zone} ที่ ${loc}m ระดับ ${lvl} — จุดรั่วทั้งหมด ${nLeak} จุด (ไฟกระพริบ)`,"al");
+}
+function clearLeak(){
+  const leaks=state.alarms.filter(a=>a.type==="leak");
+  if(leaks.length===0){ logLine("ไม่มีสถานะรั่วให้เคลียร์"); return; }
+  const zone=document.getElementById("leakZone").value;
+  let target=state.alarms.find(a=>a.type==="leak" && a.zone===zone);
+  if(!target) target=leaks[0]; // ถ้าไม่ตรงโซนที่เลือก เคลียร์จุดแรก
+  state.alarms=state.alarms.filter(a=>a!==target);
+  state.alarmIdx=0;
+  pushEvent(target.zone,"leakclear");
+  refreshBuzzer(false);
+
+  if(state.alarms.length===0){
+    draw([ "  LEAK CLEARED", "  drying ...", "", "" ]); setLeds();
+    logLine(`เช็ดแห้งโซน ${target.zone} → LEAK CLEARED (ครบทุกจุด)`,"ok");
+    setTimeout(()=>{ state.screen="normal"; render(); },1400);
+  }else{
+    logLine(`เช็ดแห้งโซน ${target.zone} → เคลียร์ 1 จุด เหลืออีก ${state.alarms.length} จุด`,"ok");
+    render();
+  }
+}
+function simBreak(){
+  if(!state.power){ logLine("เปิดเครื่องก่อนจึงจะจำลองได้"); return; }
+  const zone=document.getElementById("breakZone").value;
+  if(!state.alarms.some(a=>a.type==="break" && a.zone===zone)){
+    state.alarms.push({type:"break",zone});
+  }
+  state.screen="normal";
+  refreshBuzzer(true);
+  pushEvent(zone,"break");
+  render();
+  logLine(`สายขาดโซน ${zone} — TROUBLE LED กระพริบเหลือง บัซเซอร์เป็นจังหวะ`,"al");
+}
+function clearBreak(){
+  const breaks=state.alarms.filter(a=>a.type==="break");
+  if(breaks.length===0){ logLine("ไม่มีสถานะสายขาดให้เคลียร์"); return; }
+  const zone=document.getElementById("breakZone").value;
+  let target=state.alarms.find(a=>a.type==="break" && a.zone===zone) || breaks[0];
+  state.alarms=state.alarms.filter(a=>a!==target);
+  state.alarmIdx=0;
+  pushEvent(target.zone,"breakclear");
+  refreshBuzzer(false);
+
+  if(state.alarms.length===0){
+    draw([ "  CABLE BREAK", "  ALARM CLEARED", "  COMM LOSS CLEAR", "" ]); setLeds();
+    logLine(`ต่อสายโซน ${target.zone} → CABLE BREAK CLEARED`,"ok");
+    setTimeout(()=>{ state.screen="normal"; render(); },1400);
+  }else{
+    logLine(`ต่อสายโซน ${target.zone} → เหลือ alarm อีก ${state.alarms.length} รายการ`,"ok");
+    render();
+  }
+}
+function pushEvent(zone,type,loc){ state.events.unshift({t:clock().t, zone, type, loc}); if(state.events.length>20) state.events.pop(); }
+
+/* ---------- wiring ---------- */
+for(let i=1;i<=5;i++){ document.getElementById("b"+i).addEventListener("click",()=>press(i)); }
+document.getElementById("powerBtn").addEventListener("click",()=>{ state.power?powerOff():powerOn(); });
+document.getElementById("leakBtn").addEventListener("click",simLeak);
+document.getElementById("leakClearBtn").addEventListener("click",clearLeak);
+document.getElementById("breakBtn").addEventListener("click",simBreak);
+document.getElementById("breakClearBtn").addEventListener("click",clearBreak);
+
+const ss=document.getElementById("soundSwitch");
+ss.addEventListener("click",()=>{
+  state.sim.sound=!state.sim.sound; ss.classList.toggle("on",state.sim.sound);
+  if(!state.sim.sound) stopBuzzerSound();
+  else if(state.buzzer!=="off" && !state.silenced) startBuzzer(state.buzzer);
+});
+
+/* keyboard support: 1-5 */
+document.addEventListener("keydown",e=>{
+  if(e.key>="1"&&e.key<="5"){ press(parseInt(e.key)); }
+});
+
+/* live clock refresh on normal screen */
+setInterval(()=>{ if(state.power && state.screen==="normal" && state.alarms.length===0) renderNormal(); },15000);
+
+/* init */
+render();
+logLine("พร้อมใช้งาน — กด “เปิดเครื่อง” เพื่อเริ่ม");
+</script>
+</body>
+</html>
