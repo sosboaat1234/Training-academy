@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FG-NET Digital Unit — Touch Screen Simulator</title>
+<style>
+  :root{
+    --bezel1:#20262e; --bezel2:#13171c;
+    --screenbg:#e9e8e2; --header:#c9c8c0; --headerb:#9a998f;
+    --ink:#1c2226; --muted:#5b6168; --line:#b6b4a8;
+    --tabbg:#d6d4ca; --tabact:#f4f3ee;
+    --field:#ffffff; --fieldb:#9a988c;
+    --blue:#1f7fc2; --red:#c43b2f; --green:#2e9e57;
+    --water:#1f7fc2; --oil:#e08a1e; --alarm:#d12b22;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 50% 0%,#1a2330,#0d1117 70%);
+       font-family:Tahoma,"Segoe UI",system-ui,Arial,sans-serif;color:#e8f1f5;
+       min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:22px 12px;}
+  h1.title{font-size:18px;font-weight:600;margin:0 0 4px;color:#e8f1f5}
+  .sub{color:#8aa6b1;font-size:13px;margin-bottom:16px;text-align:center}
+  .sub b{color:#19b6e6}
+  .device{background:linear-gradient(var(--bezel1),var(--bezel2));padding:16px;border-radius:16px;
+          box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);border:1px solid #2a323c;}
+  .brand{display:flex;justify-content:space-between;align-items:center;color:#aab6c0;font-size:12px;letter-spacing:2px;padding:0 4px 9px;}
+  .led{display:flex;gap:9px;align-items:center}
+  .dot{width:9px;height:9px;border-radius:50%;background:#2c3a44}
+  .dot.on{background:#27c498;box-shadow:0 0 8px #27c498}
+  .dot.al{background:var(--alarm);box-shadow:0 0 10px var(--alarm)}
+  .screen{width:800px;height:480px;background:var(--screenbg);border-radius:6px;overflow:hidden;
+          border:2px solid #04141c;position:relative;display:flex;flex-direction:column;color:var(--ink);}
+  @media(max-width:840px){.screen{width:96vw;height:calc(96vw*0.6)}}
+  .sitebar{height:26px;background:linear-gradient(#d2d1c9,#bdbcb2);border-bottom:1px solid var(--headerb);
+           display:flex;align-items:center;justify-content:center;position:relative;font-size:12px;font-weight:700;letter-spacing:1px;color:#3a3f44}
+  .sitebar .pill{position:absolute;right:8px;top:3px;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;
+           background:#cfeede;color:#157a4f;border:1px solid #6fbf95}
+  .sitebar .pill.alarm{background:#f6d3d0;color:#a01c14;border-color:#d36;animation:blink 1s infinite}
+  .sitebar .sd{position:absolute;left:8px;top:4px;font-size:10px;color:#6a6f73;font-weight:600}
+  @keyframes blink{50%{opacity:.4}}
+  .body{flex:1;position:relative;overflow:hidden}
+  .page{position:absolute;inset:0;overflow:auto;display:none}
+  .page.active{display:block}
+  .statusbar{height:24px;background:linear-gradient(#cfcec6,#bcbbb1);border-top:1px solid var(--headerb);
+           display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#3f444a;font-size:10.5px;font-weight:600}
+  .ejectCounter{display:none;background:var(--red);color:#fff;padding:1px 9px;border-radius:10px;cursor:pointer;animation:blink 1s infinite;font-weight:700}
+  .ejectCounter.show{display:inline-block}
+  #page-home{display:none}
+  #page-home.active{display:flex}
+  .home-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#f3f2ec,#e6e5de);position:relative}
+  .home-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+  .ttk-logo{font-size:74px;font-weight:900;color:#3a3f44;letter-spacing:-4px;line-height:.8;font-family:Arial,sans-serif}
+  .ttk-logo span{color:#9a4b9a}
+  .ttk-sub{font-size:13px;letter-spacing:5px;color:#6a6f73;font-weight:600}
+  .ttk-div{font-size:20px;letter-spacing:3px;color:#7fa9c9;font-weight:700;margin-top:10px}
+  .home-bl{position:absolute;left:10px;bottom:8px;display:flex;align-items:center;gap:8px;color:#8a8f93}
+  .home-bl b{font-size:24px;font-weight:900;color:#7a7f83;letter-spacing:-2px}
+  .home-bl small{font-size:8px;line-height:1.1;letter-spacing:1px}
+  .strip{width:92px;background:linear-gradient(#3a444e,#2b333b);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:6px;border-left:1px solid #1d242b}
+  .micon{width:74px;height:74px;border-radius:10px;background:linear-gradient(#2f72a3,#1f5882);
+         border:1px solid #15425f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:.12s;color:#eaf4fb}
+  .micon:hover{filter:brightness(1.12)}
+  .micon:active{transform:scale(.95)}
+  .micon.sel{border:2px solid var(--red);box-shadow:0 0 0 1px #fff inset}
+  .micon svg{width:30px;height:30px}
+  .micon span{font-size:9.5px;font-weight:600}
+  .strip .clock{color:#cdd9df;font-size:9px;text-align:center;margin-top:2px;line-height:1.3}
+  .win{padding:8px 10px 0}
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line)}
+  .tab{padding:5px 13px;background:var(--tabbg);border:1px solid var(--line);border-bottom:none;
+       border-radius:5px 5px 0 0;font-size:12px;cursor:pointer;color:#3f444a;margin-bottom:-1px}
+  .tab.active{background:var(--tabact);font-weight:700;border-bottom:1px solid var(--tabact)}
+  .pane{background:var(--tabact);border:1px solid var(--line);border-top:none;padding:12px;min-height:330px}
+  .group{border:1px solid #c7c5ba;border-radius:5px;padding:9px 11px;margin-bottom:11px;background:#fbfbf7}
+  .group legend{font-size:11px;color:var(--blue);font-weight:700;padding:0 5px}
+  .frow{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12.5px}
+  .frow label.lbl{width:170px;color:#33383d;text-align:right}
+  input[type=text],input[type=number],input[type=password],select{background:var(--field);border:1px solid var(--fieldb);color:var(--ink);
+       border-radius:3px;padding:4px 7px;font-size:12.5px;font-family:inherit}
+  input.num{width:54px;text-align:center}
+  input[type=text]{min-width:140px}
+  input:focus,select:focus{outline:none;border-color:var(--blue)}
+  .sw{width:62px;height:22px;border-radius:4px;border:1px solid #9a988c;display:flex;cursor:pointer;font-size:10px;font-weight:700;overflow:hidden;user-select:none}
+  .sw div{flex:1;display:flex;align-items:center;justify-content:center;color:#7a7f83}
+  .sw .on{background:#cfecdc}.sw .off{background:#eee}
+  .sw.ison .on{background:var(--green);color:#fff}.sw.ison .off{color:#9a9fa3}
+  .sw.isoff .off{background:#cfcfcf;color:#444}
+  .btnbar{display:flex;gap:8px;justify-content:center;padding:9px;background:#dedcd2;border:1px solid var(--line);border-top:none}
+  .gbtn{display:flex;align-items:center;gap:6px;padding:5px 16px;border-radius:5px;border:1px solid #9a988c;
+        background:linear-gradient(#fbfbf8,#e7e5db);font-size:12.5px;cursor:pointer;color:#2a2f33;font-family:inherit}
+  .gbtn:hover{background:linear-gradient(#fff,#eee)}
+  .gbtn:active{transform:scale(.97)}
+  .gbtn .ic{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .gbtn.cancel .ic{background:var(--red)} .gbtn.apply .ic{background:var(--green)} .gbtn.ok .ic{background:var(--blue)}
+  .sbtn{padding:3px 11px;border-radius:4px;border:1px solid #9a988c;background:linear-gradient(#fbfbf8,#e7e5db);
+        font-size:11.5px;cursor:pointer;font-family:inherit;color:#2a2f33}
+  .sbtn:hover{background:#fff}
+  .sbtn.red{color:#fff;background:linear-gradient(#d4584d,#b83b30);border-color:#922}
+  .sbtn.blue{color:#fff;background:linear-gradient(#3a93cf,#1f6fa3);border-color:#155}
+  table.gui{width:100%;border-collapse:collapse;font-size:12px}
+  table.gui th,table.gui td{border:1px solid #c7c5ba;padding:4px 7px;text-align:left}
+  table.gui th{background:#e3e1d6;font-size:10.5px;text-transform:uppercase;color:#5b6168}
+  .perm{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:4px 8px;font-size:11.5px;align-items:center}
+  .perm .h{font-weight:700;color:#5b6168;font-size:10px;text-transform:uppercase;text-align:center}
+  .perm .a{color:#33383d} .perm .c{text-align:center}
+  .filters{display:flex;gap:8px;align-items:center;padding:8px 10px;flex-wrap:wrap}
+  .evt-wrap{padding:0 10px 10px}
+  tr.new td{background:#f7dcd9}
+  .state{padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700}
+  .s-new{background:#f3c9c5;color:#a01c14}.s-ack{background:#f6e4bf;color:#8a5a00}
+  .s-clr{background:#cfecdc;color:#157a4f}.s-eje{background:#d8dde2;color:#4a5560}
+  .cwin{padding:8px 10px}
+  .legend{display:flex;gap:12px;justify-content:flex-end;font-size:11px;font-weight:700;margin-bottom:4px}
+  .legend .w{color:var(--water)} .legend .o{color:var(--oil)}
+  .czone{border:1px solid #b6b4a8;border-radius:5px;padding:9px 11px;background:#fbfbf7;margin-bottom:9px}
+  .czone.water{border-left:5px solid var(--water)} .czone.oil{border-left:5px solid var(--oil)}
+  .cinfo{display:flex;justify-content:space-between;font-size:11.5px;color:#5b6168;margin-bottom:6px}
+  .crow{display:flex;align-items:center;justify-content:space-between;padding:5px 6px;border-bottom:1px dashed #d6d4ca;font-size:12.5px}
+  .crow:last-child{border-bottom:none}
+  .crow.leak{background:#f7dcd9;border-radius:4px}
+  .crow .nm b{color:var(--water)} .czone.oil .crow .nm b{color:var(--oil)}
+  .cfoot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:11.5px;color:#5b6168}
+  .helpcard{padding:14px;font-size:13px;line-height:1.6}
+  .qr{width:96px;height:96px;background:repeating-conic-gradient(#222 0 25%,#fff 0 50%) 0/16px 16px;border:6px solid #fff;outline:1px solid #999}
+  .alarmview{position:absolute;inset:0;background:linear-gradient(#2a0707,#160505);display:none;color:#fff;
+             flex-direction:column;align-items:center;justify-content:center;z-index:30;text-align:center;padding:20px}
+  .alarmview.show{display:flex}
+  .alarmview .big{font-size:42px;font-weight:800;color:#ff5a5a;letter-spacing:3px;animation:blink 1s infinite}
+  .alarmview .loc{font-size:19px;margin:12px 0 4px}.alarmview .loc b{color:#ffd27b}
+  .alarmview .meta{color:#e7b3b3;font-size:13px;margin-bottom:20px}
+  .alarmview svg{width:74px;height:74px;margin-bottom:4px}
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:40}
+  .modal.show{display:flex}
+  .dialog{background:var(--screenbg);border:1px solid #888;border-radius:5px;width:320px;box-shadow:0 8px 30px rgba(0,0,0,.5);color:var(--ink)}
+  .dialog .dh{background:linear-gradient(#d2d1c9,#bdbcb2);text-align:center;font-size:11px;font-weight:700;padding:4px;letter-spacing:1px}
+  .dialog .db{padding:16px;font-size:13px}
+  .dialog .df{display:flex;gap:8px;justify-content:center;padding:0 16px 14px}
+  .console{margin-top:16px;width:800px;max-width:96vw;background:#11161d;border:1px solid #243240;border-radius:12px;padding:13px 15px;color:#e8f1f5}
+  .console h2{margin:0 0 3px;font-size:13px;color:#19b6e6;letter-spacing:1px;text-transform:uppercase}
+  .console p{margin:0 0 11px;color:#8aa6b1;font-size:12px}
+  .console .grid{display:flex;gap:9px;flex-wrap:wrap}
+  .cbtn{padding:7px 14px;border-radius:7px;border:1px solid #2a3a45;background:#16222c;color:#e8f1f5;font-size:13px;cursor:pointer;font-family:inherit}
+  .cbtn:hover{background:#1d2c38}.cbtn.danger{border-color:#7a1f1f;background:#2a0e0e;color:#ff9b9b}
+  .note{margin-top:13px;color:#8aa6b1;font-size:12px;text-align:center;max-width:800px;line-height:1.5}
+</style>
+</head>
+<body>
+  <h1 class="title">TTK FG-NET — Digital Unit Touch Screen Simulator</h1>
+  <p class="sub">Interactive mock-up based on <b>Operation &amp; Installation Manual v3.0.1</b> · 7&Prime; touch display</p>
+
+  <div class="device">
+    <div class="brand"><span>TTK · FG-NET</span>
+      <div class="led"><span class="dot on" title="Power"></span><span class="dot on" id="ledOk" title="OK"></span><span class="dot" id="ledAl" title="Alarm"></span></div>
+    </div>
+
+    <div class="screen">
+      <div class="sitebar">
+        <span class="sd">[SD]</span>
+        <span id="siteName">SITE NAME</span>
+        <span class="pill" id="statusPill" data-i18n="systemOk">SYSTEM OK</span>
+      </div>
+
+      <div class="body">
+        <div class="page active" id="page-home">
+          <div class="home-main">
+            <div class="home-center">
+              <div class="ttk-logo">TT<span>K</span></div>
+              <div class="ttk-sub">LIQUID LEAK DETECTION SYSTEMS</div>
+              <div class="ttk-div" id="homeDivision">CONSTRUCTION DIVISION</div>
+            </div>
+            <div class="home-bl"><b>TTK</b><small>LIQUID LEAK<br>DETECTION SYSTEMS</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="strip" id="iconStrip" style="position:absolute;right:0;top:26px;bottom:24px;z-index:5">
+        <div class="micon" data-menu="setup" onclick="go('setup')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1z"/></svg>
+          <span data-i18n="setup">Setup</span></div>
+        <div class="micon" data-menu="events" onclick="go('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M4 5h16M4 12h16M4 19h10"/></svg>
+          <span data-i18n="events">Event log</span></div>
+        <div class="micon" data-menu="cables" onclick="go('cables')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M4 7c4 0 4 10 8 10s4-10 8-10"/></svg>
+          <span data-i18n="cables">Cables</span></div>
+        <div class="micon" data-menu="help" onclick="go('help')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .8-1 1.7"/><circle cx="12" cy="16.5" r="0.6" fill="#fff"/></svg>
+          <span data-i18n="help">Help</span></div>
+        <div class="clock" id="stripClock">--.--.----<br>--:--:--</div>
+      </div>
+
+      <div class="body" id="menuLayer" style="position:absolute;left:0;right:92px;top:26px;bottom:24px;display:none;background:var(--screenbg);overflow:auto;z-index:4">
+
+        <div class="page" id="page-setup">
+          <div class="win">
+            <div class="tabs">
+              <div class="tab active" data-st="system" onclick="setupTab('system')" data-i18n="tab_system">System</div>
+              <div class="tab" data-st="user" onclick="setupTab('user')" data-i18n="tab_user">User</div>
+              <div class="tab" data-st="arch" onclick="setupTab('arch')" data-i18n="tab_arch">Architecture</div>
+              <div class="tab" data-st="comm" onclick="setupTab('comm')" data-i18n="tab_comm">Communication</div>
+              <div class="tab" data-st="ext" onclick="setupTab('ext')" data-i18n="tab_ext">External Devices</div>
+            </div>
+            <div class="pane">
+              <div class="st" id="st-system">
+                <fieldset class="group"><legend data-i18n="g_global">Global</legend>
+                  <div class="frow"><label class="lbl" data-i18n="siteName">Site Name</label><input type="text" id="cfgSite" value="SITE NAME"></div>
+                  <div class="frow"><label class="lbl" data-i18n="timeZone">Time Zone</label>
+                    <select id="cfgRegion"><option>Europe</option><option selected>Asia</option><option>America</option></select>
+                    <select id="cfgCity"><option selected>Bangkok</option><option>Paris</option><option>London</option></select></div>
+                  <div class="frow"><label class="lbl" data-i18n="dateLbl">Date (dd.mm.yyyy)</label>
+                    <input class="num" type="number" id="dD" min="1" max="31" value="29">
+                    <input class="num" type="number" id="dM" min="1" max="12" value="6">
+                    <input class="num" type="number" id="dY" min="2014" max="2099" value="2026"></div>
+                  <div class="frow"><label class="lbl" data-i18n="timeLbl">Time (hh.mm.ss)</label>
+                    <input class="num" type="number" id="tH" min="0" max="23" value="10">
+                    <input class="num" type="number" id="tM" min="0" max="59" value="30">
+                    <input class="num" type="number" id="tS" min="0" max="59" value="0">
+                    <button class="sbtn" onclick="applyClock()" data-i18n="setTime">Set time</button></div>
+                  <div class="frow"><label class="lbl" data-i18n="ntp">NTP Server</label><input type="text" value="pool.ntp.org">
+                    <button class="sbtn" onclick="syncNtp()" data-i18n="synchronize">Synchronize</button></div>
+                  <div class="frow"><label class="lbl" data-i18n="appLang">Application Language</label>
+                    <select id="cfgLang" onchange="setLang(this.value)">
+                      <option value="en">English</option><option value="fr">Français</option>
+                      <option value="de">Deutsch</option><option value="es">Español</option></select></div>
+                  <div class="frow"><label class="lbl" data-i18n="sound">Sound</label>
+                    <div class="sw ison" id="cfgSound" onclick="toggleSw(this)"><div class="on">ON</div><div class="off">OFF</div></div></div>
+                </fieldset>
+                <fieldset class="group"><legend data-i18n="g_relays">Relays Management</legend>
+                  <div class="frow"><label class="lbl" data-i18n="logSize">Log File Viewer Size</label>
+                    <select><option>10</option><option>100</option><option selected>250</option><option>500</option><option>1000</option><option>5000</option></select>
+                    <span data-i18n="lines">Lines</span></div>
+                  <div class="frow"><label class="lbl" data-i18n="reactRelays">Reactivate Relays After</label>
+                    <select><option>6</option><option selected>12</option><option>24</option></select>
+                    <span data-i18n="hours">Hours</span></div>
+                </fieldset>
+                <fieldset class="group"><legend data-i18n="g_misc">Maps License / SD Card / Internet</legend>
+                  <div class="frow"><label class="lbl" data-i18n="mapLic">Maps License Code</label><input type="text" placeholder="----"><button class="sbtn" onclick="toast('Invalid or empty code')">Enter</button></div>
+                  <div class="frow"><label class="lbl" data-i18n="sdcard">SD Card</label><button class="sbtn" onclick="toast(T().restored)" data-i18n="restoreCfg">Restore Configuration</button></div>
+                  <div class="frow"><label class="lbl" data-i18n="internet">Internet</label><button class="sbtn" onclick="toast(T().uptodate)" data-i18n="update">Update</button></div>
+                </fieldset>
+              </div>
+
+              <div class="st" id="st-user" style="display:none">
+                <fieldset class="group"><legend data-i18n="g_usermgmt">User Management</legend>
+                  <div class="frow"><label class="lbl" data-i18n="selUser">Select User</label>
+                    <select id="selUser"><option>ADMIN [ADMIN]</option><option>USER 1</option><option>USER 2</option><option>USER 3</option><option>USER 4</option><option>USER 5</option></select></div>
+                  <div class="frow"><label class="lbl" data-i18n="rename">Rename</label><input type="text" placeholder=""></div>
+                  <div class="frow"><label class="lbl" data-i18n="newPass">New Password</label><input type="text" value="••••••"></div>
+                  <div class="frow"><label class="lbl" data-i18n="confirm">Confirmation</label><input type="text" value="••••••">
+                    <button class="sbtn blue" onclick="toast(T().validated)" data-i18n="valid">Valid</button></div>
+                </fieldset>
+                <fieldset class="group"><legend data-i18n="g_perm">Access Permissions</legend>
+                  <div class="perm" id="permGrid"></div>
+                </fieldset>
+              </div>
+
+              <div class="st" id="st-arch" style="display:none">
+                <fieldset class="group"><legend data-i18n="g_globalcfg">Global Configuration</legend>
+                  <div class="frow"><label class="lbl" data-i18n="genRelay">General Relay</label>
+                    <select><option>Off</option><option selected>Relay 1</option><option>Relay 2</option><option>… Relay 8</option></select>
+                    <button class="sbtn" onclick="toast('Architecture re-scanned')" data-i18n="refresh">Refresh</button></div>
+                </fieldset>
+                <fieldset class="group"><legend data-i18n="g_sensorarch">Sensor Architecture</legend>
+                  <div class="tabs" style="margin-bottom:8px">
+                    <div class="tab active">Circuit 1</div><div class="tab">Circuit 2</div><div class="tab">Circuit 3</div></div>
+                  <div class="frow" style="font-weight:700;color:#5b6168">Cable [1_01] – 7 m</div>
+                  <div class="frow"><label class="lbl" data-i18n="name">Name</label><input type="text" value="DATA HALL">
+                    <label style="margin-left:10px"><input type="checkbox"> <span data-i18n="assoc">Associate To Previous</span></label>
+                    <span style="margin-left:10px" data-i18n="alarmDelay">Alarm Delay</span>
+                    <select><option selected>0</option><option>30</option><option>60</option><option>90</option></select>
+                    <span data-i18n="seconds">seconds</span></div>
+                  <table class="gui" style="margin-top:6px"><thead><tr><th data-i18n="type">Type</th><th>Board ID</th><th data-i18n="relay">Relay</th><th data-i18n="remove">Remove</th></tr></thead>
+                    <tbody><tr><td>Leak</td><td>Local</td><td>1</td><td><button class="sbtn red" style="padding:0 7px">✕</button></td></tr>
+                    <tr><td>Leak</td><td>FG-RELAYS 1</td><td>10</td><td><button class="sbtn red" style="padding:0 7px">✕</button></td></tr></tbody></table>
+                  <div class="frow" style="margin-top:6px">
+                    <select><option>Leak</option><option>Cable break</option></select>
+                    <select><option>Local</option><option>FG-RELAYS 1</option></select>
+                    <input class="num" type="number" value="1">
+                    <button class="sbtn" data-i18n="add">Add</button></div>
+                </fieldset>
+              </div>
+
+              <div class="st" id="st-comm" style="display:none">
+                <fieldset class="group"><legend>Modbus</legend>
+                  <div class="frow"><label class="lbl">Modbus TCP</label><div class="sw ison" onclick="toggleSw(this)"><div class="on">ON</div><div class="off">OFF</div></div></div>
+                  <div class="frow"><label class="lbl">Modbus RTU slave #</label><input class="num" type="number" value="1"></div></fieldset>
+                <fieldset class="group"><legend>IP Setup</legend>
+                  <div class="frow"><label class="lbl">DHCP</label><div class="sw ison" onclick="toggleSw(this)"><div class="on">ON</div><div class="off">OFF</div></div></div>
+                  <div class="frow"><label class="lbl">IP Address</label><input type="text" value="192.168.6.134"></div>
+                  <div class="frow"><label class="lbl">Subnet Mask</label><input type="text" value="255.255.255.0"></div>
+                  <div class="frow"><label class="lbl">Gateway</label><input type="text" value="192.168.6.1"></div></fieldset>
+                <fieldset class="group"><legend>E-Mail / SNMP</legend>
+                  <div class="frow"><label class="lbl">SMTP Server</label><input type="text" value="smtp.sitem.co.th"></div>
+                  <div class="frow"><label class="lbl">SMTP Port</label><input class="num" type="number" value="25"></div></fieldset>
+              </div>
+
+              <div class="st" id="st-ext" style="display:none">
+                <fieldset class="group"><legend>FG-RELAYS</legend>
+                  <div class="frow"><label class="lbl">FG-RELAYS #1 IP</label><input type="text" value="192.168.6.150"></div>
+                  <div class="frow"><label class="lbl">Linking Code</label><input type="text" value="••••••"><button class="sbtn blue" onclick="toast('FG-RELAYS connected — status: online')" data-i18n="connect">Connect</button></div>
+                  <div class="frow"><label class="lbl">Status</label><span class="state s-clr">online</span></div>
+                  <div class="frow" style="color:#5b6168;font-size:11px">Up to 16 boards x 24 relays = 384 additional relays.</div>
+                </fieldset>
+              </div>
+            </div>
+            <div class="btnbar">
+              <button class="gbtn cancel" onclick="go('home')"><span class="ic"></span><span data-i18n="cancel">Cancel</span></button>
+              <button class="gbtn apply" onclick="applySetup(false)"><span class="ic"></span><span data-i18n="apply">Apply</span></button>
+              <button class="gbtn ok" onclick="applySetup(true)"><span class="ic"></span><span data-i18n="ok">OK</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="page-events">
+          <div class="filters">
+            <select id="fType"><option value="">All types</option><option>Leak</option><option>Cable break</option><option>External device</option></select>
+            <select id="fState"><option value="">All states</option><option>New</option><option>Acknowledged</option><option>Cleared</option><option>Ejected</option></select>
+            <button class="sbtn" onclick="renderEvents()" data-i18n="filter">Filter</button>
+            <span style="flex:1"></span>
+            <button class="sbtn red" onclick="go('home')" data-i18n="close">Close</button>
+          </div>
+          <div class="evt-wrap"><table class="gui"><thead><tr><th data-i18n="datetime">Date / time</th><th data-i18n="type">Type</th><th data-i18n="cable">Cable</th><th data-i18n="location">Location</th><th data-i18n="stateH">State</th></tr></thead><tbody id="evtBody"></tbody></table></div>
+        </div>
+
+        <div class="page" id="page-cables">
+          <div class="cwin">
+            <div class="tabs">
+              <div class="tab active" data-c="1" onclick="cableTab('1')">Circuit 1</div>
+              <div class="tab" data-c="2" onclick="cableTab('2')">Circuit 2</div>
+              <div class="tab" data-c="3" onclick="cableTab('3')">Circuit 3</div>
+              <span style="flex:1"></span>
+              <button class="sbtn red" onclick="go('home')" data-i18n="close">Close</button>
+            </div>
+            <div class="pane"><div class="legend"><span class="w" data-i18n="waterDet">Water &amp; Acid Detector</span><span class="o" data-i18n="oilDet">Oil Detector</span></div>
+              <div id="cableArea"></div></div>
+          </div>
+        </div>
+
+        <div class="page" id="page-help">
+          <div class="cwin">
+            <div class="tabs">
+              <div class="tab active" data-h="contact" onclick="helpTab('contact')" data-i18n="contact">Contact</div>
+              <div class="tab" data-h="guide" onclick="helpTab('guide')" data-i18n="userGuide">User Guide</div>
+              <div class="tab" data-h="flash" onclick="helpTab('flash')">Flash code</div>
+              <div class="tab" data-h="about" onclick="helpTab('about')" data-i18n="about">About</div>
+              <span style="flex:1"></span>
+              <button class="sbtn red" onclick="go('home')" data-i18n="close">Close</button>
+            </div>
+            <div class="pane">
+              <div class="helpcard" id="h-contact"><b>TTK S.A.S</b> — Liquid leak detection<br>www.ttkuk.com · support@ttk.fr<br><span style="color:#5b6168;font-size:11px">Local supplier details from contact.html on SD card.</span></div>
+              <div class="helpcard" id="h-guide" style="display:none">Interactive illustrated user guide embedded on the unit (installation, startup, menus, test procedures).</div>
+              <div class="helpcard" id="h-flash" style="display:none">Scan to open <b>www.FG-NET.com</b><br><br><div class="qr"></div></div>
+              <div class="helpcard" id="h-about" style="display:none"><table class="gui" style="max-width:360px">
+                <tr><td>Serial number</td><td>FGN-F-014-220140</td></tr><tr><td>Starting date</td><td>2014-04-01</td></tr>
+                <tr><td>Firmware version</td><td>v3.0.1</td></tr><tr><td>Kernel version</td><td>2.6.35</td></tr>
+                <tr><td>IP address</td><td>192.168.6.134</td></tr><tr><td>Modbus slave</td><td>1</td></tr></table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="statusbar">
+        <span id="leftStatus">v3.0.1 · Connected Sensors: 7 · ip 192.168.6.134</span>
+        <span><span class="ejectCounter" id="ejectCounter" onclick="showEjected()">0 ejected</span> <span id="botClock">--.--.---- --:--:--</span></span>
+      </div>
+
+      <div class="alarmview" id="alarmView">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff5a5a" stroke-width="1.6"><path d="M12 3 2 20h20L12 3z"/><path d="M12 9v5"/><circle cx="12" cy="17" r="0.7" fill="#ff5a5a"/></svg>
+        <div class="big" id="alarmType">LEAK DETECTED</div>
+        <div class="loc" id="alarmLocLine">Cable <b>[1_01]</b> — leak at <b>7 m</b></div>
+        <div class="meta" id="alarmMeta"></div>
+        <div style="display:flex;gap:12px"><button class="sbtn red" onclick="stopBuzzer()" data-i18n="stopBuzzer">Stop buzzer</button><button class="sbtn blue" onclick="acknowledgeAlarm()" data-i18n="acknowledge">Acknowledge</button></div>
+      </div>
+
+      <div class="modal" id="modal"><div class="dialog"><div class="dh" id="modalTitle">FG-NET</div><div class="db" id="modalBody"></div><div class="df" id="modalFoot"></div></div></div>
+
+      <div class="modal" id="loginView"><div class="dialog">
+        <div class="dh" data-i18n="login">Login</div>
+        <div class="db">
+          <div class="frow"><label class="lbl" style="width:90px" data-i18n="userLbl">User</label>
+            <select id="loginUser"><option>Admin [ADMIN]</option></select></div>
+          <div class="frow"><label class="lbl" style="width:90px" data-i18n="password">Password</label>
+            <input type="password" id="loginPass" onkeydown="if(event.key==='Enter')doLogin()"></div>
+          <div style="font-size:11px;color:#5b6168;margin-top:8px" data-i18n="loginHint">No password required — just press Enter</div>
+        </div>
+        <div class="df">
+          <button class="gbtn cancel" onclick="cancelLogin()"><span class="ic"></span><span data-i18n="cancel">Cancel</span></button>
+          <button class="gbtn ok" onclick="doLogin()"><span class="ic"></span><span data-i18n="ok">OK</span></button>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="console">
+    <h2>⚙ Simulation Console</h2>
+    <p>Trigger simulated events to test the interface.</p>
+    <div class="grid">
+      <button class="cbtn danger" onclick="triggerLeak()">💧 Simulate leak</button>
+      <button class="cbtn danger" onclick="triggerBreak()">✂ Simulate cable break</button>
+      <button class="cbtn" onclick="go('cables')">⏏ Open cables (to eject)</button>
+      <button class="cbtn" onclick="go('home')">⌂ Home</button>
+      <button class="cbtn" onclick="resetSim()">↺ Reset</button>
+    </div>
+  </div>
+  <p class="note">Clickable mock-up matching the manual screens. Sample data (site name, cable list, IP) — tell me what to change to match the real unit.</p>
+
+<script>
+var I18N={
+ en:{setup:"Setup",events:"Event log",cables:"Cables",help:"Help",systemOk:"SYSTEM OK",
+   tab_system:"System",tab_user:"User",tab_arch:"Architecture",tab_comm:"Communication",tab_ext:"External Devices",
+   g_global:"Global",g_relays:"Relays Management",g_misc:"Maps License / SD Card / Internet",g_usermgmt:"User Management",
+   g_perm:"Access Permissions",g_globalcfg:"Global Configuration",g_sensorarch:"Sensor Architecture",
+   siteName:"Site Name",timeZone:"Time Zone",dateLbl:"Date (dd.mm.yyyy)",timeLbl:"Time (hh.mm.ss)",setTime:"Set time",
+   ntp:"NTP Server",synchronize:"Synchronize",appLang:"Application Language",sound:"Sound",logSize:"Log File Viewer Size",
+   lines:"Lines",reactRelays:"Reactivate Relays After",hours:"Hours",mapLic:"Maps License Code",sdcard:"SD Card",
+   restoreCfg:"Restore Configuration",internet:"Internet",update:"Update",selUser:"Select User",rename:"Rename",
+   newPass:"New Password",confirm:"Confirmation",valid:"Valid",genRelay:"General Relay",refresh:"Refresh",name:"Name",
+   assoc:"Associate To Previous",alarmDelay:"Alarm Delay",seconds:"seconds",type:"Type",relay:"Relay",remove:"Remove",add:"Add",
+   cancel:"Cancel",apply:"Apply",ok:"OK",close:"Close",filter:"Filter",datetime:"Date / time",cable:"Cable",location:"Location",
+   stateH:"State",waterDet:"Water & Acid Detector",oilDet:"Oil Detector",contact:"Contact",userGuide:"User Guide",about:"About",
+   connect:"Connect",stopBuzzer:"Stop buzzer",acknowledge:"Acknowledge",
+   restored:"Setup restored from SD card.",uptodate:"System is already up to date (v3.0.1).",validated:"User validated.",
+   ejectTitle:"Ejection Cable",ejectFor:"Eject {c} for:",reactivate:"Reactivate",ejectedList:"Ejected Cables List",
+   numCables:"Number of Cables",totalLen:"Total length",zoneLen:"Total length of zone",leakRelays:"Leak relays",
+   breakRelays:"Break relays",map:"Map",ejectCable:"Eject cable",ejected:"ejected",
+   login:"Login",userLbl:"User",password:"Password",loginHint:"No password required — just press Enter",
+   edit:"Edit",save:"Save",editTitle:"Edit Cable",
+   perms:["Stop Sound","Display Map","Default Acknowledge","Cable Ejection","Cable Architecture Display","Event Log Display"],
+   permLevels:["Unprotected","User Allow","Admin Only"]},
+ fr:{setup:"Configuration",events:"Journal",cables:"Câbles",help:"Aide",systemOk:"SYSTÈME OK",
+   tab_system:"Système",tab_user:"Utilisateur",tab_arch:"Architecture",tab_comm:"Communication",tab_ext:"Périphériques",
+   g_global:"Général",g_relays:"Gestion des relais",g_misc:"Licence cartes / Carte SD / Internet",g_usermgmt:"Gestion des utilisateurs",
+   g_perm:"Droits d'accès",g_globalcfg:"Configuration générale",g_sensorarch:"Architecture des capteurs",
+   siteName:"Nom du site",timeZone:"Fuseau horaire",dateLbl:"Date (jj.mm.aaaa)",timeLbl:"Heure (hh.mm.ss)",setTime:"Régler l'heure",
+   ntp:"Serveur NTP",synchronize:"Synchroniser",appLang:"Langue",sound:"Son",logSize:"Taille du journal",
+   lines:"Lignes",reactRelays:"Réactiver relais après",hours:"Heures",mapLic:"Code licence cartes",sdcard:"Carte SD",
+   restoreCfg:"Restaurer la configuration",internet:"Internet",update:"Mettre à jour",selUser:"Sélectionner",rename:"Renommer",
+   newPass:"Nouveau mot de passe",confirm:"Confirmation",valid:"Valider",genRelay:"Relais général",refresh:"Actualiser",name:"Nom",
+   assoc:"Associer au précédent",alarmDelay:"Temporisation",seconds:"secondes",type:"Type",relay:"Relais",remove:"Retirer",add:"Ajouter",
+   cancel:"Annuler",apply:"Appliquer",ok:"OK",close:"Fermer",filter:"Filtrer",datetime:"Date / heure",cable:"Câble",location:"Position",
+   stateH:"État",waterDet:"Détecteur eau & acide",oilDet:"Détecteur huile",contact:"Contact",userGuide:"Guide",about:"À propos",
+   connect:"Connecter",stopBuzzer:"Arrêter alarme",acknowledge:"Acquitter",
+   restored:"Configuration restaurée depuis la carte SD.",uptodate:"Système déjà à jour (v3.0.1).",validated:"Utilisateur validé.",
+   ejectTitle:"Éjection câble",ejectFor:"Éjecter {c} pour :",reactivate:"Réactiver",ejectedList:"Liste des câbles éjectés",
+   numCables:"Nombre de câbles",totalLen:"Longueur totale",zoneLen:"Longueur totale de la zone",leakRelays:"Relais fuite",
+   breakRelays:"Relais coupure",map:"Carte",ejectCable:"Éjecter câble",ejected:"éjecté(s)",
+   login:"Connexion",userLbl:"Utilisateur",password:"Mot de passe",loginHint:"Aucun mot de passe — appuyez sur Entrée",
+   edit:"Modifier",save:"Enregistrer",editTitle:"Modifier le câble",
+   perms:["Couper le son","Afficher carte","Acquittement","Éjection câble","Affichage architecture","Affichage journal"],
+   permLevels:["Non protégé","Utilisateur","Admin"]},
+ de:{setup:"Einstellungen",events:"Ereignisse",cables:"Kabel",help:"Hilfe",systemOk:"SYSTEM OK",
+   tab_system:"System",tab_user:"Benutzer",tab_arch:"Architektur",tab_comm:"Kommunikation",tab_ext:"Geräte",
+   g_global:"Allgemein",g_relays:"Relaisverwaltung",g_misc:"Kartenlizenz / SD-Karte / Internet",g_usermgmt:"Benutzerverwaltung",
+   g_perm:"Zugriffsrechte",g_globalcfg:"Allgemeine Konfiguration",g_sensorarch:"Sensor-Architektur",
+   siteName:"Standortname",timeZone:"Zeitzone",dateLbl:"Datum (tt.mm.jjjj)",timeLbl:"Zeit (hh.mm.ss)",setTime:"Zeit setzen",
+   ntp:"NTP-Server",synchronize:"Synchronisieren",appLang:"Sprache",sound:"Ton",logSize:"Protokollgröße",
+   lines:"Zeilen",reactRelays:"Relais reaktivieren nach",hours:"Stunden",mapLic:"Kartenlizenz-Code",sdcard:"SD-Karte",
+   restoreCfg:"Konfiguration wiederherstellen",internet:"Internet",update:"Aktualisieren",selUser:"Benutzer wählen",rename:"Umbenennen",
+   newPass:"Neues Passwort",confirm:"Bestätigung",valid:"Gültig",genRelay:"Hauptrelais",refresh:"Aktualisieren",name:"Name",
+   assoc:"Mit vorherigem verbinden",alarmDelay:"Alarmverzögerung",seconds:"Sekunden",type:"Typ",relay:"Relais",remove:"Entfernen",add:"Hinzufügen",
+   cancel:"Abbrechen",apply:"Übernehmen",ok:"OK",close:"Schließen",filter:"Filtern",datetime:"Datum / Zeit",cable:"Kabel",location:"Position",
+   stateH:"Status",waterDet:"Wasser- & Säuredetektor",oilDet:"Öldetektor",contact:"Kontakt",userGuide:"Handbuch",about:"Über",
+   connect:"Verbinden",stopBuzzer:"Summer aus",acknowledge:"Quittieren",
+   restored:"Konfiguration von SD-Karte wiederhergestellt.",uptodate:"System bereits aktuell (v3.0.1).",validated:"Benutzer bestätigt.",
+   ejectTitle:"Kabel auswerfen",ejectFor:"{c} auswerfen für:",reactivate:"Reaktivieren",ejectedList:"Liste ausgeworfener Kabel",
+   numCables:"Anzahl Kabel",totalLen:"Gesamtlänge",zoneLen:"Gesamtlänge der Zone",leakRelays:"Leck-Relais",
+   breakRelays:"Bruch-Relais",map:"Karte",ejectCable:"Kabel auswerfen",ejected:"ausgeworfen",
+   login:"Anmeldung",userLbl:"Benutzer",password:"Passwort",loginHint:"Kein Passwort — Enter drücken",
+   edit:"Bearbeiten",save:"Speichern",editTitle:"Kabel bearbeiten",
+   perms:["Ton stoppen","Karte anzeigen","Quittierung","Kabelauswurf","Architektur anzeigen","Protokoll anzeigen"],
+   permLevels:["Ungeschützt","Benutzer","Nur Admin"]},
+ es:{setup:"Configuración",events:"Eventos",cables:"Cables",help:"Ayuda",systemOk:"SISTEMA OK",
+   tab_system:"Sistema",tab_user:"Usuario",tab_arch:"Arquitectura",tab_comm:"Comunicación",tab_ext:"Dispositivos",
+   g_global:"General",g_relays:"Gestión de relés",g_misc:"Licencia mapas / Tarjeta SD / Internet",g_usermgmt:"Gestión de usuarios",
+   g_perm:"Permisos de acceso",g_globalcfg:"Configuración general",g_sensorarch:"Arquitectura de sensores",
+   siteName:"Nombre del sitio",timeZone:"Zona horaria",dateLbl:"Fecha (dd.mm.aaaa)",timeLbl:"Hora (hh.mm.ss)",setTime:"Ajustar hora",
+   ntp:"Servidor NTP",synchronize:"Sincronizar",appLang:"Idioma",sound:"Sonido",logSize:"Tamaño del registro",
+   lines:"Líneas",reactRelays:"Reactivar relés tras",hours:"Horas",mapLic:"Código licencia mapas",sdcard:"Tarjeta SD",
+   restoreCfg:"Restaurar configuración",internet:"Internet",update:"Actualizar",selUser:"Seleccionar usuario",rename:"Renombrar",
+   newPass:"Nueva contraseña",confirm:"Confirmación",valid:"Validar",genRelay:"Relé general",refresh:"Actualizar",name:"Nombre",
+   assoc:"Asociar al anterior",alarmDelay:"Retardo alarma",seconds:"segundos",type:"Tipo",relay:"Relé",remove:"Quitar",add:"Añadir",
+   cancel:"Cancelar",apply:"Aplicar",ok:"OK",close:"Cerrar",filter:"Filtrar",datetime:"Fecha / hora",cable:"Cable",location:"Ubicación",
+   stateH:"Estado",waterDet:"Detector agua y ácido",oilDet:"Detector aceite",contact:"Contacto",userGuide:"Guía",about:"Acerca de",
+   connect:"Conectar",stopBuzzer:"Parar zumbador",acknowledge:"Reconocer",
+   restored:"Configuración restaurada desde tarjeta SD.",uptodate:"Sistema ya actualizado (v3.0.1).",validated:"Usuario validado.",
+   ejectTitle:"Expulsión de cable",ejectFor:"Expulsar {c} durante:",reactivate:"Reactivar",ejectedList:"Lista de cables expulsados",
+   numCables:"Número de cables",totalLen:"Longitud total",zoneLen:"Longitud total de zona",leakRelays:"Relés fuga",
+   breakRelays:"Relés corte",map:"Mapa",ejectCable:"Expulsar cable",ejected:"expulsado(s)",
+   login:"Iniciar sesión",userLbl:"Usuario",password:"Contraseña",loginHint:"Sin contraseña — pulse Intro",
+   edit:"Editar",save:"Guardar",editTitle:"Editar cable",
+   perms:["Parar sonido","Mostrar mapa","Reconocimiento","Expulsión de cable","Mostrar arquitectura","Mostrar registro"],
+   permLevels:["Sin protección","Usuario","Solo admin"]}
+};
+var lang='en';
+function T(){return I18N[lang];}
+function setLang(l){
+  lang=l; var t=T();
+  document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t[k])el.textContent=t[k];});
+  buildPerms(); if(curMenu==='cables')cableTab(curCircuit);
+  document.documentElement.lang=l;
+  document.getElementById('cfgLang').value=l;
+}
+
+var cables={
+ '1':[{id:'1_01',name:'DATA HALL A',len:7,type:'water',zone:'DATA HALL'},
+      {id:'1_02',name:'DATA HALL B',len:7,type:'water',zone:'DATA HALL'},
+      {id:'1_03',name:'CRAC UNITS',len:12,type:'water',zone:'COOLING'},
+      {id:'1_04',name:'GENERATOR BUND',len:9,type:'oil',zone:'GENERATOR'}],
+ '2':[{id:'2_01',name:'UPS ROOM',len:15,type:'water',zone:'UPS'},
+      {id:'2_02',name:'BATTERY ACID',len:6,type:'acid',zone:'BATTERY'}],
+ '3':[{id:'3_01',name:'ROOF PLANT',len:15,type:'water',zone:'ROOF'}]
+};
+var events=[
+ {t:'28.06.2026 22:14:02',type:'Cable break',cable:'[3_01]',loc:'end plug',state:'Cleared'},
+ {t:'27.06.2026 09:03:44',type:'Leak',cable:'[1_03]',loc:'4 m',state:'Cleared'},
+ {t:'25.06.2026 16:41:10',type:'External device',cable:'FG-RELAYS #1',loc:'online',state:'Cleared'}];
+var ejected=[];
+var curMenu='home',curCircuit='1',activeAlarm=null;
+
+var clockBase=null, clockSetAt=null;
+function applyClock(){
+  var d=+document.getElementById('dD').value,m=+document.getElementById('dM').value,y=+document.getElementById('dY').value;
+  var h=+document.getElementById('tH').value,mi=+document.getElementById('tM').value,s=+document.getElementById('tS').value;
+  var base=new Date(y,m-1,d,h,mi,s);
+  if(isNaN(base)){toast('Invalid date/time');return;}
+  clockBase=base.getTime(); clockSetAt=Date.now();
+  toast(lang==='fr'?'Date et heure réglées.':lang==='de'?'Datum und Zeit gesetzt.':lang==='es'?'Fecha y hora ajustadas.':'Date & time set.');
+}
+function syncNtp(){clockBase=null;clockSetAt=null;toast(lang==='fr'?'Synchronisé via NTP.':lang==='de'?'Über NTP synchronisiert.':lang==='es'?'Sincronizado vía NTP.':'Clock synchronized via NTP.');}
+function nowDate(){return clockBase!=null?new Date(clockBase+(Date.now()-clockSetAt)):new Date();}
+function p2(n){return String(n).padStart(2,'0');}
+function fmtDate(d){return p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+d.getFullYear();}
+function fmtTime(d){return p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());}
+function fmtDT(d){return fmtDate(d)+' '+fmtTime(d);}
+function tick(){var d=nowDate();
+  document.getElementById('stripClock').innerHTML=fmtDate(d)+'<br>'+fmtTime(d);
+  document.getElementById('botClock').textContent=fmtDT(d);
+  var before=ejected.length; ejected=ejected.filter(function(e){return e.until>d;}); if(ejected.length!==before)updateEjectUI();
+}
+setInterval(tick,1000);
+
+var setupAuthed=false;
+function openLogin(){
+  var v=document.getElementById('loginView');
+  document.getElementById('loginPass').value='';
+  v.classList.add('show');
+  setTimeout(function(){document.getElementById('loginPass').focus();},50);
+}
+function doLogin(){
+  setupAuthed=true;
+  document.getElementById('loginView').classList.remove('show');
+  go('setup');
+}
+function cancelLogin(){
+  document.getElementById('loginView').classList.remove('show');
+  go('home');
+}
+
+function go(p){
+  if(p==='setup' && !setupAuthed){ openLogin(); return; }
+  if(p==='home'){ setupAuthed=false; }
+  curMenu=p;
+  var ml=document.getElementById('menuLayer'), home=document.getElementById('page-home');
+  document.querySelectorAll('#menuLayer .page').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.micon').forEach(function(e){e.classList.toggle('sel',e.dataset.menu===p);});
+  if(p==='home'){ml.style.display='none';home.classList.add('active');return;}
+  home.classList.remove('active'); ml.style.display='block';
+  document.getElementById('page-'+p).classList.add('active');
+  if(p==='events')renderEvents();
+  if(p==='cables')cableTab(curCircuit);
+}
+function setupTab(t){
+  document.querySelectorAll('#page-setup .tabs>.tab').forEach(function(e){e.classList.toggle('active',e.dataset.st===t);});
+  ['system','user','arch','comm','ext'].forEach(function(k){document.getElementById('st-'+k).style.display=(k===t?'block':'none');});
+}
+function helpTab(t){document.querySelectorAll('#page-help .tab').forEach(function(e){e.classList.toggle('active',e.dataset.h===t);});
+  ['contact','guide','flash','about'].forEach(function(k){document.getElementById('h-'+k).style.display=(k===t?'block':'none');});}
+function toggleSw(el){el.classList.toggle('ison');el.classList.toggle('isoff');}
+
+function buildPerms(){
+  var t=T(),g=document.getElementById('permGrid');
+  var html='<div class="h"></div>'+t.permLevels.map(function(l){return '<div class="h">'+l+'</div>';}).join('');
+  var defaults=[2,1,0,1,1,0];
+  t.perms.forEach(function(p,i){
+    html+='<div class="a">'+p+'</div>';
+    for(var j=0;j<3;j++) html+='<div class="c"><input type="radio" name="perm'+i+'" '+(defaults[i]===j?'checked':'')+'></div>';
+  });
+  g.innerHTML=html;
+}
+
+function sc(s){return s==='New'?'s-new':s==='Acknowledged'?'s-ack':s==='Ejected'?'s-eje':'s-clr';}
+function renderEvents(){
+  var ft=document.getElementById('fType').value,fs=document.getElementById('fState').value,b=document.getElementById('evtBody');
+  b.innerHTML='';
+  events.filter(function(e){return (!ft||e.type===ft)&&(!fs||e.state===fs);}).forEach(function(e){
+    var tr=document.createElement('tr'); if(e.state==='New')tr.className='new';
+    tr.innerHTML='<td>'+e.t+'</td><td>'+e.type+'</td><td>'+e.cable+'</td><td>'+e.loc+'</td><td><span class="state '+sc(e.state)+'">'+e.state+'</span></td>';
+    b.appendChild(tr);
+  });
+}
+
+function cableTab(c){
+  curCircuit=c;var t=T();
+  document.querySelectorAll('#page-cables .tab[data-c]').forEach(function(e){e.classList.toggle('active',e.dataset.c===c);});
+  var area=document.getElementById('cableArea');area.innerHTML='';
+  var zones={};cables[c].forEach(function(cb){(zones[cb.zone]=zones[cb.zone]||[]).push(cb);});
+  Object.keys(zones).forEach(function(zn){
+    var list=zones[zn];
+    var oil=list.some(function(x){return x.type==='oil';});
+    var total=list.reduce(function(a,x){return a+x.len;},0);
+    var div=document.createElement('div');div.className='czone '+(oil?'oil':'water');
+    var h='<div class="cinfo"><span>'+t.numCables+': '+list.length+'</span><span>'+t.totalLen+': '+total+' m</span></div>';
+    list.forEach(function(cb){
+      var isEj=ejected.some(function(e){return e.id===cb.id;});
+      var leak=activeAlarm&&activeAlarm.cableId===cb.id;
+      h+='<div class="crow'+(leak?' leak':'')+'"><span class="nm"><b>['+cb.id+']</b> '+cb.name+' : '+cb.len+' m '+(isEj?'<span class="state s-eje">'+t.ejected+'</span>':'')+'</span>'+
+         '<span style="display:flex;gap:6px">'+
+         '<button class="sbtn" onclick="editCable(\''+cb.id+'\')">✎ '+t.edit+'</button>'+
+         '<button class="sbtn red" onclick="ejectDialog(\''+cb.id+'\')">⏏ '+t.ejectCable+'</button></span></div>';
+    });
+    h+='<div class="cfoot"><span>'+t.zoneLen+': '+total+' m &nbsp; · &nbsp; '+t.leakRelays+': '+list.length+'  '+t.breakRelays+': 0</span>'+
+       '<button class="sbtn" onclick="showMap(\''+list[0].id+'\')">'+t.map+'</button></div>';
+    div.innerHTML=h;area.appendChild(div);
+  });
+}
+function showMap(id){var demo=['1_01','1_02','1_03'].indexOf(id)>=0;
+  toast(demo?('Floor map for ['+id+'] (demo).'):('Invalid map — license required for ['+id+'].'));}
+
+function findCable(id){for(var c in cables){for(var i=0;i<cables[c].length;i++){if(cables[c][i].id===id)return cables[c][i];}}return null;}
+function editCable(id){
+  var cb=findCable(id),t=T();
+  var delays=['0','30','60','90','120'];
+  var opts=delays.map(function(d){return '<option '+(String(cb.delay||'0')===d?'selected':'')+'>'+d+'</option>';}).join('');
+  var body='<div class="frow"><label class="lbl" style="width:120px">'+t.name+'</label>'+
+    '<input type="text" id="edName" value="'+cb.name.replace(/"/g,'&quot;')+'"></div>'+
+    '<div class="frow"><label class="lbl" style="width:120px">'+t.alarmDelay+'</label>'+
+    '<select id="edDelay">'+opts+'</select> <span>'+t.seconds+'</span></div>'+
+    '<div class="frow"><label class="lbl" style="width:120px">'+t.assoc+'</label>'+
+    '<input type="checkbox" id="edAssoc" '+(cb.assoc?'checked':'')+'></div>'+
+    '<div style="font-size:11px;color:#5b6168;margin-top:4px">['+cb.id+'] · '+cb.len+' m · '+cb.type+'</div>';
+  var foot='<button class="gbtn cancel" onclick="closeModal()"><span class="ic"></span>'+t.cancel+'</button>'+
+    '<button class="gbtn ok" onclick="saveCable(\''+id+'\')"><span class="ic"></span>'+t.save+'</button>';
+  openModal(t.editTitle,body,foot);
+}
+function saveCable(id){
+  var cb=findCable(id);
+  var nm=document.getElementById('edName').value.trim();
+  if(nm) cb.name=nm.toUpperCase();
+  cb.delay=document.getElementById('edDelay').value;
+  cb.assoc=document.getElementById('edAssoc').checked;
+  closeModal(); cableTab(curCircuit);
+}
+
+function ejectDialog(id){
+  var cb=findCable(id),t=T();
+  var body='<div style="margin-bottom:10px">'+t.ejectFor.replace('{c}','<b>'+cb.name+' ['+cb.id+']</b>')+'</div>'+
+    '<input class="num" id="ejHrs" type="number" min="1" max="72" value="6"> <span>'+t.hours+'</span>'+
+    '<div style="font-size:11px;color:#5b6168;margin-top:6px">(max 72 '+t.hours.toLowerCase()+')</div>';
+  var foot='<button class="gbtn cancel" onclick="closeModal()"><span class="ic"></span>'+t.cancel+'</button>'+
+    '<button class="gbtn ok" onclick="doEject(\''+id+'\')"><span class="ic"></span>'+t.ok+'</button>';
+  openModal(t.ejectTitle,body,foot);
+}
+function doEject(id){
+  var h=Math.min(72,Math.max(1,+document.getElementById('ejHrs').value||6));
+  var until=new Date(nowDate().getTime()+h*3600*1000);
+  ejected=ejected.filter(function(e){return e.id!==id;});
+  ejected.push({id:id,until:until});
+  events.unshift({t:fmtDT(nowDate()),type:'Leak',cable:'['+id+']',loc:'ejected '+h+'h',state:'Ejected'});
+  updateEjectUI();closeModal();
+  if(curMenu==='cables')cableTab(curCircuit);
+}
+function updateEjectUI(){
+  var c=document.getElementById('ejectCounter'),t=T();
+  if(ejected.length){c.classList.add('show');c.textContent=ejected.length+' '+t.ejected;}
+  else c.classList.remove('show');
+}
+function showEjected(){
+  var t=T();
+  if(!ejected.length){toast('No ejected cables.');return;}
+  var rows=ejected.map(function(e){var cb=findCable(e.id);
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px dashed #ccc;font-size:12px">'+
+      '<span>'+cb.name+' ['+e.id+'] · '+t.ejected+' → '+fmtDT(e.until)+'</span>'+
+      '<button class="sbtn red" onclick="reactivate(\''+e.id+'\')">⏻ '+t.reactivate+'</button></div>';}).join('');
+  openModal(t.ejectedList,'<div style="text-align:left">'+rows+'</div>',
+    '<button class="gbtn ok" onclick="closeModal()"><span class="ic"></span>'+t.close+'</button>');
+}
+function reactivate(id){ejected=ejected.filter(function(e){return e.id!==id;});updateEjectUI();
+  if(curMenu==='cables')cableTab(curCircuit);
+  if(ejected.length)showEjected();else closeModal();}
+
+function fireAlarm(type,cb,loc){
+  activeAlarm={type:type,cableId:cb.id,loc:loc};
+  document.getElementById('alarmType').textContent=(type==='Leak'?'LEAK DETECTED':'CABLE BREAK');
+  document.getElementById('alarmLocLine').innerHTML='Cable <b>['+cb.id+']</b> — '+cb.name+' · '+type.toLowerCase()+' at <b>'+loc+'</b>';
+  document.getElementById('alarmMeta').textContent='General relay activated · buzzer ON · '+fmtDT(nowDate());
+  document.getElementById('alarmView').classList.add('show');
+  var pill=document.getElementById('statusPill');pill.className='pill alarm';pill.textContent=(type==='Leak'?'LEAK ALARM':'CABLE BREAK');
+  document.getElementById('ledOk').className='dot';document.getElementById('ledAl').className='dot al';
+  events.unshift({t:fmtDT(nowDate()),type:type,cable:'['+cb.id+']',loc:loc,state:'New'});
+}
+function triggerLeak(){var c=cables['1'][0];fireAlarm('Leak',c,(Math.floor(Math.random()*c.len)+1)+' m');}
+function triggerBreak(){fireAlarm('Cable break',cables['3'][0],'end termination plug');}
+function stopBuzzer(){document.getElementById('alarmMeta').textContent='General relay activated · buzzer SILENCED · '+fmtDT(nowDate());toast('Buzzer silenced.');}
+function acknowledgeAlarm(){if(events[0]&&events[0].state==='New')events[0].state='Acknowledged';
+  document.getElementById('alarmView').classList.remove('show');
+  var pill=document.getElementById('statusPill');pill.className='pill';pill.textContent='ALARM ACK';
+  activeAlarm=null;go('events');}
+
+function applySetup(close){
+  document.getElementById('siteName').textContent=(document.getElementById('cfgSite').value.trim()||'SITE NAME').toUpperCase();
+  toast(close?(lang==='fr'?'Réglages validés.':lang==='de'?'Einstellungen gespeichert.':lang==='es'?'Ajustes validados.':'Settings validated.')
+             :(lang==='fr'?'Réglages appliqués.':lang==='de'?'Einstellungen übernommen.':lang==='es'?'Ajustes aplicados.':'Settings applied.'));
+  if(close)go('home');
+}
+function resetSim(){activeAlarm=null;ejected=[];events=events.filter(function(e){return e.state!=='New'&&e.state!=='Ejected';});
+  document.getElementById('alarmView').classList.remove('show');
+  var pill=document.getElementById('statusPill');pill.className='pill';pill.textContent=T().systemOk;
+  document.getElementById('ledOk').className='dot on';document.getElementById('ledAl').className='dot';
+  updateEjectUI();go('home');}
+
+function openModal(title,body,foot){document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;document.getElementById('modalFoot').innerHTML=foot;
+  document.getElementById('modal').classList.add('show');}
+function toast(msg){openModal('FG-NET',msg,'<button class="gbtn ok" onclick="closeModal()"><span class="ic"></span>'+T().ok+'</button>');}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+buildPerms();renderEvents();tick();go('home');
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
