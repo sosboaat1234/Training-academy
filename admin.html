@@ -45,6 +45,8 @@ body{margin:0;font-family:var(--font-sans);background:var(--slate-50);color:var(
 /* แถบเครื่องมือ */
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
 .toolbar input{flex:1;min-width:200px;border:1px solid var(--slate-200);background:#fff;border-radius:var(--radius-md);padding:10px 12px;font-size:14px;font-family:inherit;}
+.toolbar select{border:1px solid var(--slate-200);background:#fff;border-radius:var(--radius-md);padding:10px 12px;font-size:14px;font-family:inherit;min-width:220px;max-width:320px;cursor:pointer;}
+.toolbar select:focus{outline:0;box-shadow:var(--ring);border-color:var(--blue-500);}
 .toolbar input:focus{outline:0;box-shadow:var(--ring);border-color:var(--blue-500);}
 .btn{border:0;background:var(--blue-500);color:#fff;font-weight:600;font-size:14px;padding:10px 16px;border-radius:var(--radius-md);cursor:pointer;font-family:inherit;}
 .btn:hover{background:var(--blue-600);}
@@ -101,6 +103,7 @@ tr:hover td{background:var(--slate-25);}
   <div class="wrap">
     <div class="tiles" id="tiles"></div>
     <div class="toolbar">
+      <select id="personSel"><option value="">— ทุกคน —</option></select>
       <input id="search" type="text" placeholder="ค้นหาชื่อ / อีเมล / บท..." />
       <button class="btn sec" id="reloadBtn">รีโหลดข้อมูล</button>
     </div>
@@ -237,30 +240,47 @@ function showSetup(){
 /* วาดสรุป + ตาราง */
 function render(){
   const kw = (document.getElementById("search").value||"").trim().toLowerCase();
-  const list = ROWS.filter(r=>!kw || (r.name+r.email+r.chapter).toLowerCase().includes(kw));
 
-  // สรุป
-  const learners = new Set(ROWS.map(r=>(r.email||r.name).toLowerCase()).filter(Boolean));
+  // 1) เก็บเฉพาะ "รายการล่าสุด" ของแต่ละคนต่อบท (ชีตเรียงตามเวลา แถวหลังสุด = ล่าสุด)
+  const latest = {};
+  ROWS.forEach(r=>{ latest[(r.email||r.name||"").toLowerCase()+"|"+r.chapter] = r; });
+  // 2) กรองเฉพาะสถานะ "เรียนจบ" (หรือมีคะแนน = ส่งข้อสอบแล้ว)
+  const isDone = r => r.status ? /จบ|pass|ผ่าน/i.test(r.status) : !!r.score;
+  const done = Object.values(latest).filter(isDone);
+
+  // ---- ดรอปดาวน์เลือกคน (คงค่าที่เลือกไว้) ----
+  const sel = document.getElementById("personSel");
+  const prevPerson = sel ? sel.value : "";
+  const peopleMap = {};
+  done.forEach(r=>{ const e=(r.email||r.name||"").toLowerCase(); if(e) peopleMap[e]=r.name||r.email; });
+  if(sel){
+    sel.innerHTML = '<option value="">— ทุกคน —</option>' +
+      Object.keys(peopleMap).sort().map(e=>`<option value="${e}">${peopleMap[e]} (${e})</option>`).join("");
+    sel.value = prevPerson;
+  }
+  const person = sel ? sel.value : "";
+
+  let list = done.filter(r=>!kw || (r.name+r.email+r.chapter).toLowerCase().includes(kw));
+  if(person) list = list.filter(r=>(r.email||r.name||"").toLowerCase()===person);
+
+  // สรุป (นับจากที่เรียนจบล่าสุด ไม่ซ้ำ)
+  const learners = new Set(done.map(r=>(r.email||r.name).toLowerCase()).filter(Boolean));
   let sumPct=0, nPct=0;
-  ROWS.forEach(r=>{ const s=parseScore(r.score); if(s&&s.max){ sumPct+=s.got/s.max*100; nPct++; } });
+  done.forEach(r=>{ const s=parseScore(r.score); if(s&&s.max){ sumPct+=s.got/s.max*100; nPct++; } });
   const avg = nPct ? Math.round(sumPct/nPct) : null;
   document.getElementById("tiles").innerHTML = `
-    <div class="tile"><b>${ROWS.length}</b><span>รายการส่งทั้งหมด</span></div>
+    <div class="tile"><b>${done.length}</b><span>เรียนจบ (รวมทุกบท)</span></div>
     <div class="tile"><b>${learners.size}</b><span>ผู้เรียน (ไม่ซ้ำ)</span></div>
     <div class="tile"><b>${SOURCES.filter(s=>s.url).length}</b><span>บทที่เชื่อมข้อมูล</span></div>
     <div class="tile"><b>${avg!==null?avg+"%":"—"}</b><span>คะแนนเฉลี่ย</span></div>`;
 
-  // ตาราง
-  if(list.length===0){ document.getElementById("tableCard").innerHTML='<div class="note">ไม่พบข้อมูล</div>'; return; }
+  if(list.length===0){ document.getElementById("tableCard").innerHTML='<div class="note">ยังไม่มีผู้เรียนจบ</div>'; return; }
   const rowsHtml = list.map(r=>{
     const s=parseScore(r.score);
-    let badge='<span class="muted">—</span>';
+    let badge='<span class="badge b-pass">เรียนจบ</span>';
     if(r.score){
       const cls = (s&&s.max) ? (s.got/s.max>=0.7?'b-pass':'b-fail') : 'b-plain';
       badge=`<span class="badge ${cls}">${r.score}</span>`;
-    } else if(r.status){
-      const cls = /จบ|pass|ผ่าน/i.test(r.status) ? 'b-pass' : 'b-plain';
-      badge=`<span class="badge ${cls}">${r.status}</span>`;
     }
     return `<tr>
       <td>${r.name||'<span class="muted">(ไม่มีชื่อ)</span>'}</td>
@@ -279,6 +299,7 @@ function render(){
 
 document.getElementById("search").addEventListener("input", render);
 document.getElementById("reloadBtn").addEventListener("click", loadAll);
+document.getElementById("personSel").addEventListener("change", render);
 
 </script>
 </body>
