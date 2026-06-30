@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ===== โทนแบรนด์ SITEM ===== */
 :root{
@@ -88,6 +89,7 @@ tr:hover td{background:var(--slate-25);}
     <h2 id="gateTitle">Admin Dashboard</h2>
     <p id="gateMsg">กำลังตรวจสอบสิทธิ์...</p>
     <a class="btn" id="gateLogin" href="index.html" style="display:none;text-decoration:none">ไปหน้าเข้าสู่ระบบ</a>
+    <div id="gsiWrap" style="display:none;justify-content:center;margin-top:8px"><div id="gsiBtn"></div></div>
     <input id="passInput" type="password" placeholder="รหัสผ่านแอดมิน" style="display:none" />
     <p class="err" id="passErr" style="display:none">รหัสไม่ถูกต้อง</p>
     <button class="btn" id="passBtn" style="display:none">เข้าสู่ระบบ</button>
@@ -146,25 +148,50 @@ const SOURCES = [
   // เพิ่มแหล่งอื่นได้ที่นี่ เช่น CSV ของแท็บคำตอบฟอร์มแต่ละบท
 ];
 
+/* === Sign in with Google (สำหรับล็อกอินจากหน้า Admin โดยตรง) === */
+const GOOGLE_CLIENT_ID = "153619259603-pc7cuamp045984cd1rfpgoefv3j7pnkc.apps.googleusercontent.com";
+const SITEM_DOMAIN = "@sitem.co.th";
+function decodeJwt(t){ try{ return JSON.parse(decodeURIComponent(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")).split("").map(function(c){return "%"+("00"+c.charCodeAt(0).toString(16)).slice(-2);}).join(""))); }catch(e){ return {}; } }
+function handleGoogleCredential(resp){
+  const info = decodeJwt(resp.credential);
+  const email = (info.email||"").toLowerCase();
+  if(!email.endsWith(SITEM_DOMAIN)){ document.getElementById("gateMsg").textContent = "ต้องเข้าด้วยบัญชี " + SITEM_DOMAIN + " เท่านั้น"; return; }
+  localStorage.setItem("sitem_user", JSON.stringify({name: info.name||email, email: email, picture: info.picture||"", verified:true}));
+  checkAccess();
+}
+function initGoogleAdmin(){
+  if(!(window.google && google.accounts)) return;
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, hd:"sitem.co.th" });
+  google.accounts.id.renderButton(document.getElementById("gsiBtn"), { theme:"outline", size:"large", width:260, text:"signin_with", shape:"pill" });
+}
+window.onGoogleLibraryLoad = initGoogleAdmin;
+if(window.google && google.accounts) initGoogleAdmin();
+
 /* ============================================================ ด่านสิทธิ์: ต้องล็อกอินเป็นแอดมิน ============================================================ */
 function checkAccess(){
   let u=null; try{ u=JSON.parse(localStorage.getItem("sitem_user")); }catch(e){}
   const g=document.getElementById("gateLogin");
+  const gsi=document.getElementById("gsiWrap");
+  // ซ่อนทุกองค์ประกอบก่อน
+  g.style.display="none"; gsi.style.display="none";
+  document.getElementById("passInput").style.display="none";
+  document.getElementById("passBtn").style.display="none";
+  document.getElementById("passErr").style.display="none";
   if(u && u.verified && isAdmin(u.email)){        // ผ่าน Google + เป็นแอดมิน → ขอรหัสอีกชั้น
     if(sessionStorage.getItem("sitem_admin_pass")==="1") grantAdmin();
     else showPasscode();
-  } else if(u && isAdmin(u.email) && !u.verified){ // เป็นแอดมินแต่เข้าด้วยการกรอกอีเมล
-    document.getElementById("gateTitle").textContent="ต้องยืนยันตัวตนด้วย Google";
-    document.getElementById("gateMsg").textContent="ผู้ดูแลระบบต้องเข้าสู่ระบบด้วยปุ่ม Sign in with Google เท่านั้น เพื่อความปลอดภัย";
-    g.style.display="inline-block"; g.textContent="ไปหน้าเข้าสู่ระบบ";
+  } else if(u && isAdmin(u.email) && !u.verified){ // เป็นแอดมินแต่เข้าด้วยอีเมล → ให้ล็อกอิน Google
+    document.getElementById("gateTitle").textContent="ยืนยันตัวตนด้วย Google";
+    document.getElementById("gateMsg").textContent="กรุณาเข้าสู่ระบบด้วยบัญชี Google ที่เป็นแอดมิน";
+    gsi.style.display="flex";
   } else if(u){                                    // ล็อกอินแล้วแต่ไม่ใช่แอดมิน
     document.getElementById("gateTitle").textContent="ไม่มีสิทธิ์เข้าถึง";
     document.getElementById("gateMsg").textContent="บัญชี "+u.email+" ไม่ใช่ผู้ดูแลระบบ";
     g.style.display="inline-block"; g.textContent="กลับหน้าเรียน";
-  } else {                                         // ยังไม่ล็อกอิน
-    document.getElementById("gateTitle").textContent="กรุณาเข้าสู่ระบบก่อน";
-    document.getElementById("gateMsg").textContent="ต้องเข้าสู่ระบบด้วยบัญชีแอดมิน (ผ่าน Google) ก่อนจึงจะดูหน้านี้ได้";
-    g.style.display="inline-block";
+  } else {                                         // ยังไม่ล็อกอิน → โชว์ปุ่ม Google
+    document.getElementById("gateTitle").textContent="เข้าสู่ระบบผู้ดูแล";
+    document.getElementById("gateMsg").textContent="เข้าสู่ระบบด้วยบัญชี Google ที่เป็นแอดมิน";
+    gsi.style.display="flex";
   }
 }
 checkAccess();
