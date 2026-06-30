@@ -322,7 +322,7 @@ const PRODUCTS = [
     name:"รู้จัก SITEM", tagline:"ประวัติบริษัท วิสัยทัศน์ และมาตรฐาน ISO 9001:2015",
     description:"Site Preparation Management (SITEM) คือผู้เชี่ยวชาญด้านการออกแบบ ก่อสร้าง และดูแลรักษา Data Center รวมถึงจัดจำหน่ายอุปกรณ์ระดับโลก ด้วยมาตรฐาน ISO 9001:2015 — Data Center ต้องถูกสร้างโดยมืออาชีพ",
     howto:["ทำความเข้าใจวิสัยทัศน์และบริการหลักของ SITEM","รู้จักกลุ่มผลิตภัณฑ์ของบริษัท","ศึกษามาตรฐานคุณภาพและความปลอดภัยในงาน Data Center"],
-    videoId:"ScMzIvxBSi4", docs:[], quizLink:"#",
+    videoId:"https://drive.google.com/file/d/1pNpjYSqnGPmRcITj0NvyoOPtvJdljuXT/view?usp=sharing", docs:[], quizLink:null,
   },
   { id:"generator", icon:"zap", color:"var(--amber-500)", eyebrow:"POWER",
     name:"Generator", tagline:"เครื่องกำเนิดไฟฟ้าสำรอง",
@@ -665,6 +665,14 @@ function selectProduct(id){
 function showLibrary(){
   inLibrary = true; inHome = false; closeMenu();
   renderNav(document.getElementById("searchInput").value);
+  const noQuiz = (p.quizLink === null || p.quizLink === undefined);
+  const quizCard = `
+      <div class="card">
+        <div class="eyebrow">${noQuiz ? 'สรุปบทเรียน' : 'POST-TEST'}</div>
+        <h3 class="section-title" style="margin-top:4px">${noQuiz ? 'จบบทเรียน' : 'แบบทดสอบท้ายบท'}</h3>
+        <p style="margin-top:-8px;color:var(--text-muted);font-size:14px">${noQuiz ? 'บทนี้ไม่มีแบบทดสอบ — ดูวิดีโอจบแล้วกด “ทำเครื่องหมายว่าเรียนจบ” ได้เลย' : 'ทำแบบทดสอบท้ายบทเพื่อวัดความเข้าใจ เมื่อทำเสร็จแล้วกด “ทำเครื่องหมายว่าเรียนจบ” เพื่อบันทึกความคืบหน้า'}</p>
+        <div class="quiz-actions">${noQuiz ? '' : quizBtn(p)}${doneBtn(p)}</div>
+      </div>`;
   document.getElementById("contentArea").innerHTML = `
     <div class="card fade-in" style="padding:0;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border-subtle)">
@@ -766,12 +774,7 @@ function renderContent(){
       ${videoCard}
       ${docsCard}
       ${demoCard}
-      <div class="card">
-        <div class="eyebrow">POST-TEST</div>
-        <h3 class="section-title" style="margin-top:4px">แบบทดสอบท้ายบท</h3>
-        <p style="margin-top:-8px;color:var(--text-muted);font-size:14px">ทำแบบทดสอบท้ายบทเพื่อวัดความเข้าใจ เมื่อทำเสร็จแล้วกด “ทำเครื่องหมายว่าเรียนจบ” เพื่อบันทึกความคืบหน้า</p>
-        <div class="quiz-actions">${quizBtn(p)}${doneBtn(p)}</div>
-      </div>
+      ${quizCard}
       <div class="lesson-nav">
         ${prev?`<button class="btn btn-ghost" onclick="selectProduct('${prev.id}')">${svg("arrowleft")}<span>ก่อนหน้า: ${prev.name}</span></button>`:`<span></span>`}
         ${next?`<button class="btn btn-primary" onclick="selectProduct('${next.id}')"><span>ถัดไป: ${next.name}</span>${svg("arrow")}</button>`:`<span></span>`}
