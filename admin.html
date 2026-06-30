@@ -88,6 +88,9 @@ tr:hover td{background:var(--slate-25);}
     <h2 id="gateTitle">Admin Dashboard</h2>
     <p id="gateMsg">กำลังตรวจสอบสิทธิ์...</p>
     <a class="btn" id="gateLogin" href="index.html" style="display:none;text-decoration:none">ไปหน้าเข้าสู่ระบบ</a>
+    <input id="passInput" type="password" placeholder="รหัสผ่านแอดมิน" style="display:none" />
+    <p class="err" id="passErr" style="display:none">รหัสไม่ถูกต้อง</p>
+    <button class="btn" id="passBtn" style="display:none">เข้าสู่ระบบ</button>
   </div>
 </div>
 
@@ -119,6 +122,22 @@ tr:hover td{background:var(--slate-25);}
 const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];
 function isAdmin(email){ return ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase()); }
 
+// === รหัสผ่านหน้า Admin (เปลี่ยนได้ทุกเดือน — แก้ตรงนี้แล้วอัป admin.html ทับ) ===
+const ADMIN_PASSCODE = "sitem2026";
+function grantAdmin(){ document.getElementById("gate").classList.add("hidden"); document.getElementById("app").style.display="block"; loadAll(); }
+function showPasscode(){
+  document.getElementById("gateTitle").textContent = "ใส่รหัสผ่านแอดมิน";
+  document.getElementById("gateMsg").textContent   = "กรอกรหัสผ่านเพื่อเข้าหน้าแอดมิน";
+  document.getElementById("passInput").style.display = "block";
+  document.getElementById("passBtn").style.display   = "block";
+  document.getElementById("passInput").focus();
+}
+function tryPasscode(){
+  if(document.getElementById("passInput").value === ADMIN_PASSCODE){
+    sessionStorage.setItem("sitem_admin_pass","1"); grantAdmin();
+  } else { document.getElementById("passErr").style.display = "block"; }
+}
+
 // 2) แหล่งข้อมูลคะแนน = ลิงก์ "เผยแพร่เป็น CSV" ของ Google Sheet ที่ผูกกับฟอร์มแต่ละบท
 //    (วิธีเอาลิงก์: ในชีต > ไฟล์ > แชร์ > เผยแพร่ไปยังเว็บ > เลือกชีต > CSV > เผยแพร่)
 //    ใส่ได้หลายบท แต่ละบทหนึ่งบรรทัด
@@ -131,10 +150,9 @@ const SOURCES = [
 function checkAccess(){
   let u=null; try{ u=JSON.parse(localStorage.getItem("sitem_user")); }catch(e){}
   const g=document.getElementById("gateLogin");
-  if(u && u.verified && isAdmin(u.email)){        // ต้องเข้าผ่าน Google (verified) + เป็นแอดมิน
-    document.getElementById("gate").classList.add("hidden");
-    document.getElementById("app").style.display="block";
-    loadAll();
+  if(u && u.verified && isAdmin(u.email)){        // ผ่าน Google + เป็นแอดมิน → ขอรหัสอีกชั้น
+    if(sessionStorage.getItem("sitem_admin_pass")==="1") grantAdmin();
+    else showPasscode();
   } else if(u && isAdmin(u.email) && !u.verified){ // เป็นแอดมินแต่เข้าด้วยการกรอกอีเมล
     document.getElementById("gateTitle").textContent="ต้องยืนยันตัวตนด้วย Google";
     document.getElementById("gateMsg").textContent="ผู้ดูแลระบบต้องเข้าสู่ระบบด้วยปุ่ม Sign in with Google เท่านั้น เพื่อความปลอดภัย";
@@ -150,6 +168,8 @@ function checkAccess(){
   }
 }
 checkAccess();
+document.getElementById("passBtn").addEventListener("click", tryPasscode);
+document.getElementById("passInput").addEventListener("keydown", function(e){ if(e.key==="Enter") tryPasscode(); });
 
 /* ============================================================ ตัวแปรเก็บข้อมูล ============================================================ */
 let ROWS = [];   // ทุกแถวที่รวมจากทุกบท

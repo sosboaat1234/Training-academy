@@ -816,6 +816,7 @@ const SITEM_DOMAIN = "@sitem.co.th";
 const ADMIN_EMAILS = ["poowadolk@sitem.co.th"];   // อีเมลแอดมิน (เพิ่ม/ลดได้)
 const isAdmin = email => ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((email||"").toLowerCase());
 const GOOGLE_CLIENT_ID = "153619259603-pc7cuamp045984cd1rfpgoefv3j7pnkc.apps.googleusercontent.com";
+const GOOGLE_ONLY = true;   // true = เข้าได้เฉพาะ Google (ซ่อนช่องกรอกอีเมล)
 // *** วาง URL ของ Apps Script Web App ที่นี่ เพื่อเก็บความคืบหน้ารวมศูนย์ (ดูคู่มือ) ว่างไว้ = เก็บเฉพาะในเครื่อง ***
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxb28ROsVGon-io4s6O1bEKBDnnTuRtAQf8y1o3SxPcppjHrrHLLTWQnRvsOPStBxna/exec";
 
@@ -859,6 +860,7 @@ document.getElementById("loginForm").addEventListener("submit",e=>{
   showApp(user);
 });
 document.getElementById("logoutBtn").addEventListener("click", logout);
+if(GOOGLE_ONLY){ document.getElementById("loginForm").style.display="none"; document.getElementById("loginOr").style.display="none"; }
 document.getElementById("hambBtn").addEventListener("click",()=>{const sb=document.querySelector(".sidebar");const open=!sb.classList.contains("open");sb.classList.toggle("open",open);document.getElementById("scrim").classList.toggle("show",open);});
 document.getElementById("scrim").addEventListener("click",closeMenu);
 
@@ -882,7 +884,7 @@ function initGoogle(){
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, hd:"sitem.co.th" });
   google.accounts.id.renderButton(document.getElementById("gsiBtn"), { theme:"outline", size:"large", width:320, text:"signin_with", shape:"pill" });
   document.getElementById("gsiWrap").style.display = "flex";
-  document.getElementById("loginOr").style.display = "flex";
+  document.getElementById("loginOr").style.display = GOOGLE_ONLY ? "none" : "flex";
 }
 window.onGoogleLibraryLoad = initGoogle;
 if(window.google && google.accounts) initGoogle();
