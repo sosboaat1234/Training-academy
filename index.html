@@ -322,7 +322,11 @@ const PRODUCTS = [
     name:"รู้จัก SITEM", tagline:"ประวัติบริษัท วิสัยทัศน์ และมาตรฐาน ISO 9001:2015",
     description:"Site Preparation Management (SITEM) คือผู้เชี่ยวชาญด้านการออกแบบ ก่อสร้าง และดูแลรักษา Data Center รวมถึงจัดจำหน่ายอุปกรณ์ระดับโลก ด้วยมาตรฐาน ISO 9001:2015 — Data Center ต้องถูกสร้างโดยมืออาชีพ",
     howto:["ทำความเข้าใจวิสัยทัศน์และบริการหลักของ SITEM","รู้จักกลุ่มผลิตภัณฑ์ของบริษัท","ศึกษามาตรฐานคุณภาพและความปลอดภัยในงาน Data Center"],
-    videoId:"https://drive.google.com/file/d/1pNpjYSqnGPmRcITj0NvyoOPtvJdljuXT/view?usp=sharing", docs:[], quizLink:null,
+    videoId:"https://drive.google.com/file/d/1pNpjYSqnGPmRcITj0NvyoOPtvJdljuXT/view?usp=sharing",
+    docs:[
+      {title:"ไฟล์วิดีโอ รู้จัก SITEM", url:"https://drive.google.com/file/d/1pNpjYSqnGPmRcITj0NvyoOPtvJdljuXT/view?usp=sharing"},
+    ],
+    quizLink:null,
   },
   { id:"generator", icon:"zap", color:"var(--amber-500)", eyebrow:"POWER",
     name:"Generator", tagline:"เครื่องกำเนิดไฟฟ้าสำรอง",
@@ -730,12 +734,12 @@ function renderContent(){
   const prev = PRODUCTS[idx-1], next = PRODUCTS[idx+1];
   const videoCard = hasVideo(p)
     ? `<div class="card">
-        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
+        <h3 class="section-title">${svg("play")} วิดีโอ</h3>
         <div class="video-wrap"><iframe src="${videoEmbed(p)}" title="วิดีโอสอน ${p.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
         <div class="video-meta"><span class="pill">MODULE</span> หลักสูตร ${p.name} · ดูจบแล้วทำแบบทดสอบด้านล่าง</div>
       </div>`
     : `<div class="card">
-        <h3 class="section-title">${svg("play")} วิดีโอสอนการใช้งาน</h3>
+        <h3 class="section-title">${svg("play")} วิดีโอ</h3>
         <div class="soon-box">วิดีโอบทนี้อยู่ระหว่างจัดทำ • เร็วๆ นี้</div>
       </div>`;
   const howto = p.howto.map((s,i)=>`<li><span class="num">${i+1}</span><span class="t">${s}</span></li>`).join("");
