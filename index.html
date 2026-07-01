@@ -665,14 +665,6 @@ function selectProduct(id){
 function showLibrary(){
   inLibrary = true; inHome = false; closeMenu();
   renderNav(document.getElementById("searchInput").value);
-  const noQuiz = (p.quizLink === null || p.quizLink === undefined);
-  const quizCard = `
-      <div class="card">
-        <div class="eyebrow">${noQuiz ? 'สรุปบทเรียน' : 'POST-TEST'}</div>
-        <h3 class="section-title" style="margin-top:4px">${noQuiz ? 'จบบทเรียน' : 'แบบทดสอบท้ายบท'}</h3>
-        <p style="margin-top:-8px;color:var(--text-muted);font-size:14px">${noQuiz ? 'บทนี้ไม่มีแบบทดสอบ — ดูวิดีโอจบแล้วกด “ทำเครื่องหมายว่าเรียนจบ” ได้เลย' : 'ทำแบบทดสอบท้ายบทเพื่อวัดความเข้าใจ เมื่อทำเสร็จแล้วกด “ทำเครื่องหมายว่าเรียนจบ” เพื่อบันทึกความคืบหน้า'}</p>
-        <div class="quiz-actions">${noQuiz ? '' : quizBtn(p)}${doneBtn(p)}</div>
-      </div>`;
   document.getElementById("contentArea").innerHTML = `
     <div class="card fade-in" style="padding:0;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border-subtle)">
@@ -760,6 +752,14 @@ function renderContent(){
           ${p.docs.map(d=>`<a class="doc-item" href="${d.url}" target="_blank" rel="noopener"><span class="di-ic">${svg("doc")}</span><span>${d.title}</span><span class="di-go">${svg("arrow")}</span></a>`).join("")}
         </div>
       </div>` : "";
+  const noQuiz = (p.quizLink === null || p.quizLink === undefined);
+  const quizCard = `
+      <div class="card">
+        <div class="eyebrow">${noQuiz ? 'สรุปบทเรียน' : 'POST-TEST'}</div>
+        <h3 class="section-title" style="margin-top:4px">${noQuiz ? 'จบบทเรียน' : 'แบบทดสอบท้ายบท'}</h3>
+        <p style="margin-top:-8px;color:var(--text-muted);font-size:14px">${noQuiz ? 'บทนี้ไม่มีแบบทดสอบ — ดูวิดีโอจบแล้วกด “ทำเครื่องหมายว่าเรียนจบ” ได้เลย' : 'ทำแบบทดสอบท้ายบทเพื่อวัดความเข้าใจ เมื่อทำเสร็จแล้วกด “ทำเครื่องหมายว่าเรียนจบ” เพื่อบันทึกความคืบหน้า'}</p>
+        <div class="quiz-actions">${noQuiz ? '' : quizBtn(p)}${doneBtn(p)}</div>
+      </div>`;
   document.getElementById("contentArea").innerHTML = `
     <div class="stack fade-in">
       <div class="card">
