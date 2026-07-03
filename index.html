@@ -187,6 +187,11 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .soon-box{background:var(--slate-50);border:1px dashed var(--border-default);border-radius:var(--radius-md);padding:42px 20px;text-align:center;color:var(--text-muted);font-size:14px;}
 .demo-frame{width:100%;height:72vh;border:1px solid var(--border-subtle);border-radius:var(--radius-md);display:block;background:#10151c;}
 .lib-frame{width:100%;height:76vh;border:0;display:block;}
+/* คำถามปลายเปิด */
+.open-q-list{display:flex;flex-direction:column;gap:12px;}
+.open-q-item{background:var(--amber-50);border:1px solid #f0d8a0;border-left:4px solid var(--amber-500);border-radius:var(--radius-md);padding:16px 18px;}
+.open-q-item p{margin:0 0 12px;color:var(--text-strong);font-size:15px;line-height:1.65;}
+.open-q-hint{font-size:12.5px;color:var(--text-muted);margin-top:8px;}
 
 /* ============================================================ 5) RESPONSIVE ============================================================ */
 @media(max-width:880px){
@@ -554,6 +559,17 @@ function renderContent(){
           ${p.docs.map(d=>`<a class="doc-item" href="${d.url}" target="_blank" rel="noopener"><span class="di-ic">${svg("doc")}</span><span>${d.title}</span><span class="di-go">${svg("arrow")}</span></a>`).join("")}
         </div>
       </div>` : "";
+  const openQCard = (p.openQ && p.openQ.length) ? `
+      <div class="card">
+        <h3 class="section-title">${svg("check")} คำถามปลายเปิด</h3>
+        <div class="open-q-list">
+          ${p.openQ.map(q=>`
+            <div class="open-q-item">
+              <p>❓ ${esc(q.q)}</p>
+              <a class="btn btn-ghost" href="${q.url}" target="_blank" rel="noopener" style="font-size:13px;padding:7px 16px">${svg("arrow")} ดูเฉลย</a>
+            </div>`).join("")}
+        </div>
+      </div>` : "";
   const ready = isReady(p);
   const noQuiz = (p.quizLink === null || p.quizLink === undefined);
   let quizCard;
@@ -595,6 +611,7 @@ function renderContent(){
       </div>
       ${videoCard}
       ${docsCard}
+      ${openQCard}
       ${demoCard}
       ${quizCard}
       <div class="lesson-nav">

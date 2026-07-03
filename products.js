@@ -79,6 +79,9 @@ const PRODUCTS = [
       {title:"เอกสาร Huawei UPS5000 Series", url:"https://drive.google.com/file/d/1lpuooFkykmclfe_B_ZWhOuzUChQOt8Os/view?usp=drive_link"},
       {title:"Huawei Support Portal (Data Center Facility)", url:"https://support.huawei.com/enterprise/en/category/data-center-facility-pid-1657247194270?submodel=doc"},
     ],
+    openQ:[
+      {q:"UPS แบบ Offline (Standby), Line-Interactive และ Online Double-Conversion แตกต่างกันอย่างไร? แต่ละแบบเหมาะกับงานประเภทใด และทำไม Data Center จึงต้องใช้แบบ Online Double-Conversion?", url:"https://www.fs.com/blog/comparison-of-ups-topologies-line-interactive-vs-online-vs-offline-3538.html"},
+    ],
     quizLink:"#",
   },
   { id:"ups-sentryum", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
