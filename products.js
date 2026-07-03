@@ -64,7 +64,7 @@ const PRODUCTS = [
     howto:["วางผังการจ่ายไฟให้สมดุลแต่ละเฟส","ติดตั้ง PDU/Busway และต่อโหลดตามพิกัด","มอนิเตอร์การใช้พลังงานรายแร็ค"],
     videoId:"ScMzIvxBSi4", docs:[], quizLink:"#",
   },
-  { id:"ups-huawei", icon:"battery", color:"var(--amber-500)", eyebrow:"POWER",
+  { id:"ups-huawei", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
     name:"UPS — Huawei", tagline:"Modular UPS ซีรีส์ UPS5000 — High Efficiency & AI Predictive",
     description:"Huawei UPS5000 Series คือ Modular UPS ระดับ Enterprise สำหรับ Data Center ขนาดกลาง-ใหญ่ ออกแบบให้ขยายกำลังได้แบบ Hot-swap โดยไม่ต้องหยุดระบบ รุ่นหลัก ได้แก่ UPS5000-E (30–800 kVA, ประสิทธิภาพสูงสุด 96%), UPS5000-H (400–1600 kVA, โมดูล 100 kVA/3U, S-ECO Mode ประสิทธิภาพสูงถึง 99.1%) และ UPS5000-A (Tower สำหรับ Data Center ระดับ Primary) ระบบ iPower ใช้ AI วิเคราะห์สุขภาพชิ้นส่วนล่วงหน้า (Predictive Maintenance) และรองรับแรงดัน Input กว้างถึง 138–483 V AC",
     howto:[
@@ -81,7 +81,7 @@ const PRODUCTS = [
     ],
     quizLink:"#",
   },
-  { id:"ups-sentryum", icon:"battery", color:"var(--amber-500)", eyebrow:"POWER",
+  { id:"ups-sentryum", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
     name:"UPS — Riello Sentryum", tagline:"Static UPS 10–120 kVA Transformerless สำหรับ Data Center เล็ก-กลาง",
     description:"Riello Sentryum คือ UPS 3 Phase Online Double-Conversion รุ่นใหม่ปี 2023 ใช้ Dual-core DSP + Three-level Inverter ประสิทธิภาพสูงสุด 96.6% (pf 1.0) ทนอุณหภูมิได้ถึง 40°C THDv < 1.5% กับโหลด Non-linear มีตัวเลือกตู้ 3 แบบ (Compact / Active / Xtend) รองรับ Overload 125% นาน 10 นาที ขนานได้สูงสุด 8 ตัว เหมาะกับ Server Room และ Data Center ขนาดเล็ก-กลาง",
     howto:[
@@ -97,7 +97,7 @@ const PRODUCTS = [
     ],
     quizLink:"#",
   },
-  { id:"ups-mp2", icon:"battery", color:"var(--amber-500)", eyebrow:"POWER",
+  { id:"ups-mp2", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
     name:"UPS — Riello MP2", tagline:"Modular UPS 120–6400 kW Silicon Carbide สำหรับ Data Center ขนาดใหญ่",
     description:"Riello Multi Power2 (MP2) คือ Modular UPS ประสิทธิภาพสูงสุดในตลาด ใช้ชิป Silicon Carbide (SiC) ทำให้ได้ประสิทธิภาพ 98.1% ในโหมด Online Double-Conversion โมดูล Power 67 kW/3U Hot-swap ไม่ต้องหยุดระบบเมื่อเพิ่มกำลังหรือ Maintenance รองรับ 120–600 kW ต่อตู้ และขยายถึง 6400 kW ด้วยการขนาน 4 ระบบ เหมาะกับ Data Center ขนาดกลาง-ใหญ่ที่ต้องการ TIER สูงและ TCO ต่ำ",
     howto:[
@@ -114,7 +114,7 @@ const PRODUCTS = [
     ],
     quizLink:"#",
   },
-  { id:"dynamicups", icon:"battery", color:"var(--amber-500)", eyebrow:"POWER",
+  { id:"dynamicups", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
     name:"UPS — Active Power", tagline:"Flywheel UPS (CleanSource) — ไฟสำรองไร้แบตเตอรี่",
     description:"Active Power CleanSource คือ Flywheel UPS ที่สะสมพลังงานด้วยล้อหมุนความเร็วสูง (Kinetic Energy) แทนแบตเตอรี่ ให้ไฟสำรอง 15–30 วินาที เพียงพอสำหรับเครื่องกำเนิดไฟฟ้าสตาร์ท ด้วย Parallel Online Architecture จะแยก Input/Output อย่างสมบูรณ์และตัดฮาร์มอนิกออกจากโหลด ได้รับการรับรอง IEC 62040-3 Class 1 ข้อดีสำคัญ: TCO ต่ำกว่า UPS+Battery แบบเดิม 40%, โอกาสเสียน้อยกว่า 12 เท่า และปล่อย Carbon น้อยกว่า 9 เท่า",
     howto:[
@@ -126,7 +126,7 @@ const PRODUCTS = [
     ],
     videoId:"ScMzIvxBSi4", docs:[], quizLink:"#",
   },
-  { id:"vycon", icon:"battery", color:"var(--amber-500)", eyebrow:"POWER",
+  { id:"vycon", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
     name:"UPS — Vycon", tagline:"Flywheel Energy Storage (VDC) — แทนแบตเตอรี่ใน UPS",
     description:"Vycon VDC Flywheel คือระบบกักเก็บพลังงานจลน์ (Kinetic Energy Storage) ที่ต่อเข้า DC Bus ของ UPS 3 เฟสโดยตรง เมื่อไฟหลักดับ Flywheel ปล่อยพลังงานรองรับโหลดทันที 20–40 วินาที ขณะ Generator สตาร์ท ใช้ Active Magnetic Bearing ลอยตัวโรเตอร์ไม่มีการสัมผัส ทำให้อายุการใช้งานยาวนานถึง 20 ปี เชื่อถือได้สูงกว่าแบตเตอรี่ VRLA ถึง 20 เท่า และประหยัดพื้นที่ 50–75% เทียบกับแบงค์แบตเตอรี่ขนาดเดียวกัน",
     howto:[
