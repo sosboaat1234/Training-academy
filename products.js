@@ -98,6 +98,9 @@ const PRODUCTS = [
     docs:[
       {title:"สไลด์ Riello Sentryum", url:"https://drive.google.com/file/d/14U7X0QKZBtSRtsY0ZLRhb9sMjisfNDG7/view?usp=sharing"},
     ],
+    openQ:[
+      {q:"การเปลี่ยนบอร์ด Control ของ Riello Sentryum มีขั้นตอนอย่างไร? ต้องเตรียมอะไรบ้างก่อนเปลี่ยน และควรระวังอะไรขณะทำงาน?"},
+    ],
     quizLink:"#",
   },
   { id:"ups-mp2", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
@@ -114,6 +117,9 @@ const PRODUCTS = [
     docs:[
       {title:"Manual MP2 (1)", url:"https://drive.google.com/file/d/1L63wWjzEtIDPDzZOF2pVQNmMgXBKmtnL/view?usp=sharing"},
       {title:"Manual MP2 (2)", url:"https://drive.google.com/file/d/1L1v3KIA4vvmddj5NnCXWMoH-_eyGdy80/view?usp=sharing"},
+    ],
+    openQ:[
+      {q:"การอัปเดต Firmware ของ Riello MP2 ทำยังไง? ต้องเตรียมอะไรบ้าง มีความเสี่ยงอะไรที่ต้องระวัง และถ้า Firmware อัปเดตค้างกลางคันต้องทำอย่างไร?"},
     ],
     quizLink:"#",
   },

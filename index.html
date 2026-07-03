@@ -249,6 +249,15 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .hamb svg{width:24px;height:24px;}
 .scrim{display:none;}
 .empty{color:var(--text-faint);font-size:14px;padding:18px;text-align:center;}
+/* category mini progress bar in sidebar */
+.cat-progress{padding:0 10px 5px;display:flex;align-items:center;gap:8px;}
+.cat-progress-bar{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden;}
+.cat-progress-bar i{display:block;height:100%;background:var(--cyan-400);border-radius:99px;transition:width var(--dur-slow);}
+.cat-progress-txt{font-size:10px;color:var(--cyan-300);font-family:var(--font-mono);flex-shrink:0;min-width:28px;text-align:right;}
+/* recently viewed section */
+.nav-recent-label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600;padding:8px 10px 3px;display:flex;align-items:center;gap:5px;}
+.nav-recent-label svg{width:13px;height:13px;}
+.nav-recent-divider{height:1px;background:rgba(255,255,255,.1);margin:6px 10px 2px;}
 </style>
 </head>
 
@@ -407,6 +416,17 @@ function loadProgress(){
 }
 function saveProgress(){ const key=progKey(); if(key) localStorage.setItem(key, JSON.stringify(passed)); }
 
+/* ----- recently viewed (เก็บรายการบทที่ดูล่าสุด max 5 รายการ รายคน) ----- */
+function recentKey(){ return currentUser ? "sitem_recent_"+currentUser.email.toLowerCase() : null; }
+function loadRecent(){ try{ const k=recentKey(); return k ? JSON.parse(localStorage.getItem(k)||"[]") : []; }catch(e){ return []; } }
+function addRecent(id){
+  const k=recentKey(); if(!k) return;
+  let list=loadRecent().filter(x=>x!==id);
+  list.unshift(id);
+  if(list.length>5) list=list.slice(0,5);
+  localStorage.setItem(k, JSON.stringify(list));
+}
+
 /* ============================================================ 4) progress ring รวม ============================================================ */
 function renderOverall(){
   const total = PRODUCTS.length;
@@ -430,6 +450,30 @@ function renderNav(keyword=""){
   document.getElementById("homeBtn").classList.toggle("active", inHome);
   document.getElementById("libBtn").classList.toggle("active", inLibrary);
   nav.innerHTML = "";
+
+  /* ----- Recently Viewed (แสดงเฉพาะตอนไม่ได้ค้นหา) ----- */
+  if(!k){
+    const recent = loadRecent().map(getProduct).filter(Boolean);
+    if(recent.length){
+      const div=document.createElement("div");
+      div.className="nav-recent-label";
+      div.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ดูล่าสุด`;
+      nav.appendChild(div);
+      recent.forEach(p=>{
+        const btn=document.createElement("button");
+        btn.className="nav-item"+((!inHome && !inLibrary && p.id===currentId)?" active":"");
+        const tag = passed[p.id] ? '<span class="ni-dot done"></span>' : '<span class="ni-dot"></span>';
+        btn.innerHTML=`${svg(p.icon)}<span class="ni-text">${p.name}</span>${tag}`;
+        btn.onclick=()=>selectProduct(p.id);
+        nav.appendChild(btn);
+      });
+      const divider=document.createElement("div");
+      divider.className="nav-recent-divider";
+      nav.appendChild(divider);
+    }
+  }
+
+  /* ----- เมนูรายหมวด ----- */
   CAT_ORDER.forEach(([cat,label])=>{
     const items = list.filter(p=>p.eyebrow===cat);
     if(!items.length) return;
@@ -439,6 +483,14 @@ function renderNav(keyword=""){
     h.innerHTML=`<span>${label}</span><svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
     h.onclick=()=>toggleCat(cat);
     nav.appendChild(h);
+    /* Mini progress bar ใต้ชื่อหมวด (แสดงเสมอ แม้ collapsed) */
+    const allCat=PRODUCTS.filter(p=>p.eyebrow===cat);
+    const catDone=allCat.filter(p=>passed[p.id]).length;
+    const catPct=allCat.length?Math.round(catDone/allCat.length*100):0;
+    const pb=document.createElement("div");
+    pb.className="cat-progress";
+    pb.innerHTML=`<div class="cat-progress-bar"><i style="width:${catPct}%"></i></div><span class="cat-progress-txt">${catDone}/${allCat.length}</span>`;
+    nav.appendChild(pb);
     if(collapsed) return;
     items.forEach(p=>{
       const btn=document.createElement("button");
@@ -456,6 +508,7 @@ function renderNav(keyword=""){
 function selectProduct(id){
   inLibrary = false; inHome = false; closeMenu();
   currentId = id;
+  addRecent(id);
   renderNav(document.getElementById("searchInput").value);
   renderContent();
   document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
@@ -566,7 +619,7 @@ function renderContent(){
           ${p.openQ.map(q=>`
             <div class="open-q-item">
               <p>❓ ${esc(q.q)}</p>
-              <a class="btn btn-ghost" href="${q.url}" target="_blank" rel="noopener" style="font-size:13px;padding:7px 16px">${svg("arrow")} ดูเฉลย</a>
+              ${q.url ? `<a class="btn btn-ghost" href="${q.url}" target="_blank" rel="noopener" style="font-size:13px;padding:7px 16px">${svg("arrow")} ดูเฉลย</a>` : `<span class="open-q-hint">💡 ลองคิดจากที่เรียนมา แล้วถาม Trainer ของคุณ</span>`}
             </div>`).join("")}
         </div>
       </div>` : "";
