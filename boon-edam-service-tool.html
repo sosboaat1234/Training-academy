@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Boon Edam Service Tool</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  background: #6a8faf;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+
+/* ── Window shell ── */
+.window {
+  width: 900px;
+  background: #f0f0f0;
+  border: 1px solid #888;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column;
+}
+
+/* ── Title bar ── */
+.titlebar {
+  background: linear-gradient(to bottom, #4a90c8 0%, #2060a0 100%);
+  padding: 4px 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  user-select: none; flex-shrink: 0;
+}
+.titlebar-left { display: flex; align-items: center; gap: 5px; }
+.titlebar-icon {
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: bold; color: #1558a0; flex-shrink: 0;
+}
+.titlebar-text { color: white; font-size: 12px; }
+.titlebar-btns { display: flex; gap: 2px; }
+.wbtn {
+  width: 20px; height: 16px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white; font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: 1px; line-height: 1;
+}
+.wbtn:hover { background: rgba(255,255,255,0.4); }
+.wbtn.x:hover { background: #c0392b; }
+
+/* ── Body row: left panel + right content ── */
+.body-row {
+  display: flex;
+  flex: 1;
+  min-height: 580px;
+}
+
+/* ── Left quick menu ── */
+.quick-menu {
+  width: 110px;
+  background: #f0f0f0;
+  border-right: 1px solid #aaa;
+  padding: 6px 0;
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+}
+.qm-btn {
+  padding: 6px 10px;
+  color: #006600;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.3;
+  border: none; background: none;
+  font-family: inherit;
+  width: 100%;
+}
+.qm-btn:hover { background: #ddeedd; color: #003300; }
+.qm-btn:active { background: #bbddbb; }
+.qm-btn.disabled { color: #aaa; cursor: default; }
+.qm-btn.disabled:hover { background: none; color: #aaa; }
+.qm-sep { height: 8px; }
+.qm-dropdown {
+  margin: 4px 8px;
+  padding: 2px 4px;
+  font-size: 11px;
+  border: 1px solid #aaa;
+  background: white;
+  color: #333;
+  font-family: inherit;
+  width: calc(100% - 16px);
+}
+.qm-version {
+  padding: 3px 10px;
+  font-size: 10px;
+  color: #555;
+  text-align: left;
+}
+.qm-crc {
+  padding: 4px 10px;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: #aaa;
+}
+.qm-crc label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: #555; }
+
+/* ── Right: tab strip + content ── */
+.right-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Tab strip ── */
+.tab-strip {
+  display: flex;
+  background: #f0f0f0;
+  border-bottom: 2px solid #aaa;
+  padding: 4px 0 0 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.tab {
+  padding: 4px 12px;
+  border: 1px solid #bbb;
+  border-bottom: none;
+  background: #ddd;
+  cursor: pointer;
+  font-size: 11px;
+  color: #333;
+  white-space: nowrap;
+  margin-right: 2px;
+  border-radius: 3px 3px 0 0;
+  position: relative; bottom: -2px;
+}
+.tab:hover { background: #e8e8e8; }
+.tab.active {
+  background: #f0f0f0;
+  border-bottom: 2px solid #f0f0f0;
+  font-weight: bold;
+  color: #000;
+  z-index: 1;
+}
+.tab.disabled { color: #bbb; cursor: default; }
+.tab.disabled:hover { background: #ddd; }
+
+/* ── Content panel ── */
+.content {
+  flex: 1;
+  background: #f0f0f0;
+  padding: 12px 14px;
+  overflow-y: auto;
+}
+
+/* ── Status bar ── */
+.statusbar {
+  background: #f0f0f0;
+  border-top: 1px solid #bbb;
+  padding: 3px 8px;
+  font-size: 11px; color: #333;
+  display: flex; justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* ── Setup: large icon buttons ── */
+.app-info-box {
+  border: 1px solid #aaa;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  display: inline-block;
+  min-width: 260px;
+  background: white;
+  position: relative;
+}
+.app-info-box legend {
+  position: absolute; top: -8px; left: 8px;
+  background: #f0f0f0;
+  padding: 0 4px;
+  font-size: 11px; color: #333;
+}
+.app-info-text {
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  padding: 4px 0;
+  min-height: 22px;
+}
+
+.icon-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 90px);
+  gap: 8px;
+  margin-top: 4px;
+}
+.icon-btn {
+  width: 90px; height: 78px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px;
+  border-radius: 2px;
+  transition: background 0.1s;
+}
+.icon-btn:hover { background: #e0eef8; border-color: #7aafe0; }
+.icon-btn:active { background: #c8ddf0; }
+.icon-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+.icon-btn.disabled:hover { background: #f8f8f8; border-color: #ccc; }
+.icon-img { width: 40px; height: 40px; display: block; }
+.icon-label {
+  font-size: 11px;
+  color: #006600;
+  text-decoration: underline;
+  text-align: center;
+}
+
+/* ── Update tab: wide buttons ── */
+.update-btn {
+  width: 320px; height: 60px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 14px;
+  margin-bottom: 6px;
+  border-radius: 2px;
+  font-size: 12px; color: #333;
+  font-family: inherit;
+}
+.update-btn:hover { background: #e0eef8; border-color: #7aafe0; }
+.update-btn .u-icon { width: 36px; height: 36px; }
+.update-btn .u-label { color: #006600; text-decoration: underline; font-size: 12px; }
+
+/* ── Config tab ── */
+.config-group {
+  border: 1px solid #aaa;
+  margin-bottom: 12px;
+  background: white;
+  position: relative;
+}
+.config-group-title {
+  position: absolute; top: -8px; left: 8px;
+  background: white; padding: 0 4px; font-size: 11px; color: #333;
+}
+.config-body { padding: 14px 10px 10px; }
+.cfg-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+.cfg-label { width: 140px; font-size: 11px; color: #333; flex-shrink: 0; }
+.cfg-input {
+  padding: 2px 4px; border: 1px solid #aaa;
+  font-size: 11px; font-family: inherit;
+  background: white;
+}
+.cfg-input:focus { outline: 1px solid #4a90c8; }
+select.cfg-input { min-width: 120px; }
+
+/* ── IO tab ── */
+.io-section-title {
+  font-size: 11px; font-weight: bold; color: #333;
+  margin: 10px 0 4px;
+}
+.io-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+  background: white; border: 1px solid #ccc; padding: 6px;
+  margin-bottom: 8px;
+}
+.io-cell {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 4px 2px; cursor: pointer;
+  border: 1px solid #e0e0e0; border-radius: 2px;
+  background: #fafafa;
+}
+.io-cell:hover { background: #eef4ff; }
+.io-led {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #d0d0d0; border: 1px solid #aaa;
+}
+.io-led.green { background: #22cc44; box-shadow: 0 0 4px #22cc44; border-color: #119922; }
+.io-led.red   { background: #ee3333; box-shadow: 0 0 4px #ee3433; border-color: #991111; }
+.io-led.yellow{ background: #eeaa11; box-shadow: 0 0 4px #eeaa11; border-color: #aa7700; }
+.io-lbl { font-size: 9px; color: #555; text-align: center; line-height: 1.1; }
+
+/* ── Sensor grid ── */
+.sensor-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 6px;
+  background: white; border: 1px solid #ccc; padding: 8px;
+}
+.sensor-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 6px; border: 1px solid #e8e8e8; cursor: pointer;
+}
+.sensor-item:hover { background: #eef4ff; }
+.s-led {
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+  background: #d0d0d0; border: 1px solid #aaa;
+}
+.s-led.on { background: #22cc44; box-shadow: 0 0 5px #22cc44; }
+.s-name { font-size: 10px; color: #333; }
+
+/* ── Log encoder graph ── */
+.log-graph {
+  background: white; border: 1px solid #ccc;
+  height: 180px; position: relative; overflow: hidden;
+  margin-bottom: 8px;
+}
+.log-toolbar { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+.log-label { font-size: 11px; color: #555; }
+
+/* ── Plain Windows buttons ── */
+.win-btn {
+  padding: 4px 18px;
+  border: 1px solid #888; border-radius: 2px;
+  background: #f0f0f0;
+  font-family: inherit; font-size: 11px; color: #333;
+  cursor: pointer; min-width: 75px;
+}
+.win-btn:hover { background: #e0e8f4; border-color: #4a90c8; }
+.win-btn:active { background: #c8d8ec; }
+.win-btn.disabled { color: #aaa; cursor: default; }
+.win-btn.disabled:hover { background: #f0f0f0; border-color: #888; }
+
+/* ── Maintenance sub-tabs ── */
+.sub-tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 10px; }
+.sub-tab {
+  padding: 4px 12px; font-size: 11px; cursor: pointer;
+  border: 1px solid #ccc; border-bottom: none;
+  background: #e0e0e0; margin-right: 2px; border-radius: 2px 2px 0 0;
+  color: #333;
+}
+.sub-tab.active { background: white; font-weight: bold; }
+.sub-tab:hover { background: #eee; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 11px; background: white; }
+.data-table th {
+  background: #dde8f0; padding: 4px 8px;
+  text-align: left; border: 1px solid #bbb; font-weight: bold;
+}
+.data-table td { padding: 3px 8px; border: 1px solid #e0e0e0; vertical-align: middle; }
+.data-table tr:hover td { background: #eef4ff; cursor: pointer; }
+.data-table tr.even td { background: #f8f8f8; }
+
+/* ── About ── */
+.about-panel {
+  background: white; border: 1px solid #ccc;
+  padding: 20px; display: flex; gap: 20px; align-items: flex-start;
+}
+.about-logo-box {
+  border: 1px solid #ccc; padding: 14px 18px; min-width: 200px; text-align: center;
+}
+.logo-be { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+.logo-be span { color: #006600; }
+.logo-tagline { font-size: 12px; color: #555; font-style: italic; margin-top: 4px; }
+.logo-circle { display: inline-block; width: 16px; height: 16px; background: #006600; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+.about-info p { font-size: 11px; margin-bottom: 5px; color: #333; }
+.about-link { color: #006699; text-decoration: underline; cursor: pointer; font-size: 11px; }
+
+/* ── Progress bar ── */
+.prog-wrap { height: 14px; background: white; border: 1px solid #aaa; margin: 6px 0; }
+.prog-fill { height: 100%; background: #4a90c8; width: 0%; transition: width 0.2s; }
+
+/* ── Modal ── */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: none; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-bg.show { display: flex; }
+.modal-win {
+  background: #f0f0f0; border: 1px solid #888;
+  box-shadow: 3px 3px 12px rgba(0,0,0,0.4); min-width: 320px;
+}
+.modal-titlebar {
+  background: linear-gradient(to bottom, #4a90c8, #2060a0);
+  color: white; padding: 4px 8px; font-size: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-body { padding: 16px; }
+.modal-body label { font-size: 11px; }
+.modal-footer { padding: 8px 12px; display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid #ddd; }
+.modal-field { margin-bottom: 10px; }
+.modal-field label { display: block; font-size: 11px; margin-bottom: 3px; color: #333; }
+.modal-input {
+  padding: 3px 6px; border: 1px solid #aaa; font-size: 11px;
+  font-family: inherit; background: white; width: 100%;
+}
+.modal-group {
+  border: 1px solid #aaa; padding: 10px; position: relative; margin-bottom: 12px; background: white;
+}
+.modal-group-title {
+  position: absolute; top: -8px; left: 8px;
+  background: white; padding: 0 4px; font-size: 11px; color: #333;
+}
+.modal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.modal-lbl { width: 180px; font-size: 11px; flex-shrink: 0; }
+
+/* IO pulse buttons */
+.pulse-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.io-controls { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+
+/* Checkbox Windows style */
+input[type=checkbox] { width: 12px; height: 12px; cursor: pointer; }
+
+/* Settings table inline edit */
+.set-val { padding: 2px 4px; border: 1px solid #bbb; font-size: 11px; width: 80px; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <div class="titlebar-icon">BE</div>
+      <span class="titlebar-text">Boon Edam Service Tool</span>
+    </div>
+    <div class="titlebar-btns">
+      <div class="wbtn">─</div>
+      <div class="wbtn">□</div>
+      <div class="wbtn x">✕</div>
+    </div>
+  </div>
+
+  <div class="body-row">
+
+    <!-- Left quick menu -->
+    <div class="quick-menu">
+      <button class="qm-btn disabled" id="qb-upload" onclick="if(st.connected&&st.cfgDl)doUpload()">Upload<br>config</button>
+      <button class="qm-btn disabled" id="qb-download" onclick="if(st.connected)doDownload()">Download<br>config</button>
+      <button class="qm-btn disabled" id="qb-dlall" onclick="if(st.connected)doDownloadAll()">Download<br>all</button>
+      <div class="qm-sep"></div>
+      <button class="qm-btn" onclick="openDice()">Search<br>Dice code</button>
+      <button class="qm-btn" onclick="openError()">Search<br>Error code</button>
+      <div class="qm-sep"></div>
+      <button class="qm-btn disabled" id="qb-ce" onclick="if(st.connected)openCE()">CE number</button>
+      <div class="qm-sep"></div>
+      <button class="qm-btn disabled" id="qb-ver" onclick="if(st.connected)openVersions()">Versions</button>
+      <div class="qm-sep"></div>
+      <button class="qm-btn" id="qb-conn" onclick="doConnect()">Connect</button>
+      <button class="qm-btn disabled" id="qb-disc" onclick="doDisconnect()">Disconnect</button>
+      <div class="qm-sep"></div>
+      <select class="qm-dropdown" id="platformSel" onchange="st.platform=this.value">
+        <option value="BC100">BC100</option>
+        <option value="MicroBoon">MicroBoon</option>
+        <option value="PLC">PLC</option>
+      </select>
+      <div class="qm-version" id="verLabel">Version: –</div>
+      <div class="qm-crc">
+        <label><input type="checkbox" id="crcChk" checked onchange="toggleCRC()"> CRC check</label>
+      </div>
+    </div>
+
+    <!-- Right: tabs + content -->
+    <div class="right-area">
+
+      <!-- Tab strip -->
+      <div class="tab-strip" id="tabStrip">
+        <div class="tab active" id="tab-setup" onclick="switchTab('setup')">Setup</div>
+        <div class="tab" id="tab-update" onclick="switchTab('update')">Update</div>
+        <div class="tab" id="tab-config" onclick="switchTab('config')">Config</div>
+        <div class="tab disabled" id="tab-io" onclick="guardedTab('io')">IO</div>
+        <div class="tab disabled" id="tab-tools" onclick="guardedTab('tools')">Tools</div>
+        <div class="tab disabled" id="tab-sensors" onclick="guardedTab('sensors')">Sensors</div>
+        <div class="tab disabled" id="tab-manual" onclick="guardedTab('manual')">Manual</div>
+        <div class="tab disabled" id="tab-settings" onclick="guardedTab('settings')">Settings</div>
+        <div class="tab disabled" id="tab-audio" onclick="guardedTab('audio')">Audio settings</div>
+        <div class="tab disabled" id="tab-options" onclick="guardedTab('options')">Options</div>
+        <div class="tab disabled" id="tab-maint" onclick="guardedTab('maint')">Maintenance</div>
+        <div class="tab" id="tab-about" onclick="switchTab('about')">About</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span id="statusMsg">Ready</span>
+    <span id="statusRight">C</span>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modalBg" onclick="bgClick(event)">
+  <div class="modal-win" id="modalWin">
+    <div class="modal-titlebar" id="modalTitle">Dialog</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter">
+      <button class="win-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SVG icons (inline) ──────────────────────────────────────────────────────
+const SVG = {
+  download: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="24" width="28" height="10" rx="1" fill="#888" stroke="#666" stroke-width="0.5"/>
+    <rect x="10" y="26" width="20" height="6" rx="1" fill="#ddd"/>
+    <rect x="12" y="2" width="16" height="16" rx="1" fill="#c8d8f0" stroke="#888" stroke-width="1"/>
+    <rect x="9" y="13" width="22" height="7" rx="1" fill="#b0c4e0"/>
+    <polygon points="20,30 13,20 27,20" fill="#00aa00"/>
+    <line x1="20" y1="18" x2="20" y2="13" stroke="#00aa00" stroke-width="3"/>
+    <circle cx="28" cy="8" r="7" fill="#00aa00"/>
+    <polygon points="28,12 23,5 33,5" fill="white"/>
+    <line x1="28" y1="4" x2="28" y2="10" stroke="white" stroke-width="2"/>
+  </svg>`,
+  upload: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="24" width="28" height="10" rx="1" fill="#888" stroke="#666" stroke-width="0.5"/>
+    <rect x="10" y="26" width="20" height="6" rx="1" fill="#ddd"/>
+    <rect x="12" y="2" width="16" height="16" rx="1" fill="#c8d8f0" stroke="#888" stroke-width="1"/>
+    <rect x="9" y="13" width="22" height="7" rx="1" fill="#b0c4e0"/>
+    <polygon points="20,12 13,22 27,22" fill="#00aa00"/>
+    <line x1="20" y1="14" x2="20" y2="22" stroke="#00aa00" stroke-width="3"/>
+    <circle cx="28" cy="8" r="7" fill="#00aa00"/>
+    <polygon points="28,4 23,11 33,11" fill="white"/>
+    <line x1="28" y1="12" x2="28" y2="5" stroke="white" stroke-width="2"/>
+  </svg>`,
+  default: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="24" width="28" height="10" rx="1" fill="#ccc" stroke="#bbb" stroke-width="0.5"/>
+    <rect x="10" y="26" width="20" height="6" rx="1" fill="#eee"/>
+    <rect x="12" y="2" width="16" height="16" rx="1" fill="#dde4ee" stroke="#ccc" stroke-width="1"/>
+    <rect x="9" y="13" width="22" height="7" rx="1" fill="#cdd4de"/>
+    <polygon points="20,30 13,20 27,20" fill="#bbb"/>
+    <circle cx="28" cy="8" r="7" fill="#bbb"/>
+  </svg>`,
+  load: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 10 L4 34 L36 34 L36 14 L18 14 L14 10 Z" fill="#f5d060" stroke="#c8a820" stroke-width="1"/>
+    <path d="M4 16 L4 34 L36 34 L36 16 Z" fill="#fce080" stroke="#c8a820" stroke-width="1"/>
+    <path d="M14 16 L4 10 L18 10 L18 14 L36 14 L36 16 Z" fill="#f0c030"/>
+  </svg>`,
+  save: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="4" width="32" height="32" rx="1" fill="#333" stroke="#222" stroke-width="0.5"/>
+    <rect x="7" y="4" width="20" height="14" fill="#88aacc"/>
+    <rect x="9" y="6" width="10" height="10" fill="#aaccee"/>
+    <rect x="6" y="22" width="28" height="12" rx="1" fill="#88aacc"/>
+    <rect x="10" y="24" width="20" height="8" fill="#aaccee"/>
+  </svg>`,
+  export: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 4 L26 4 L34 12 L34 36 L6 36 Z" fill="white" stroke="#aaa" stroke-width="1"/>
+    <path d="M26 4 L26 12 L34 12 Z" fill="#ccc"/>
+    <line x1="10" y1="18" x2="28" y2="18" stroke="#aaa" stroke-width="1"/>
+    <line x1="10" y1="22" x2="28" y2="22" stroke="#aaa" stroke-width="1"/>
+    <line x1="10" y1="26" x2="22" y2="26" stroke="#aaa" stroke-width="1"/>
+    <circle cx="30" cy="30" r="8" fill="#00aa00"/>
+    <polygon points="30,34 24,26 36,26" fill="white"/>
+    <line x1="30" y1="25" x2="30" y2="32" stroke="white" stroke-width="2"/>
+  </svg>`,
+  sw_update: `<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="4" width="24" height="28" rx="1" fill="#c8d8f0" stroke="#888"/>
+    <rect x="4" y="8" width="20" height="20" fill="#a0b8d8"/>
+    <circle cx="28" cy="8" r="7" fill="#00aa00"/>
+    <polygon points="28,12 23,5 33,5" fill="white"/>
+    <line x1="28" y1="4" x2="28" y2="11" stroke="white" stroke-width="2"/>
+  </svg>`,
+  factory: `<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="18" r="14" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+    <path d="M18 10 L18 18 L24 18" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="18" cy="18" r="3" fill="#333"/>
+  </svg>`,
+  cfg_update: `<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 6 L24 6 L24 14 L20 14 L20 10 L16 10 L16 6" fill="none"/>
+    <path d="M4 6 L24 6 L30 12 L30 30 L4 30 Z" fill="#f5d060" stroke="#c8a820"/>
+    <path d="M24 6 L24 12 L30 12 Z" fill="#d8a800"/>
+    <circle cx="28" cy="8" r="7" fill="#00aa00"/>
+    <polygon points="28,12 23,5 33,5" fill="white"/>
+    <line x1="28" y1="4" x2="28" y2="11" stroke="white" stroke-width="2"/>
+  </svg>`,
+  audio_update: `<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="4" width="24" height="28" rx="1" fill="#c8d8f0" stroke="#888"/>
+    <path d="M10 12 L14 10 L14 24 L10 22 L6 22 L6 12 Z" fill="#666"/>
+    <path d="M16 13 Q20 18 16 23" stroke="#666" stroke-width="1.5" fill="none"/>
+    <path d="M18 10 Q24 18 18 26" stroke="#666" stroke-width="1.5" fill="none"/>
+    <circle cx="28" cy="8" r="7" fill="#00aa00"/>
+    <polygon points="28,12 23,5 33,5" fill="white"/>
+    <line x1="28" y1="4" x2="28" y2="11" stroke="white" stroke-width="2"/>
+  </svg>`
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const st = {
+  connected: false,
+  platform: 'BC100',
+  cfgDl: false,
+  currentTab: 'setup',
+  maintTab: 'events',
+  ioRunning: false, ioIv: null,
+  sensorRunning: false, sensorIv: null,
+  logRunning: false, logIv: null,
+  logData: [],
+  sensors: Array(16).fill(false),
+  ios_in: [false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false],
+  ios_out: [false,false,false,false,true,false,false,true,false,false,false,false,false,false,true,false],
+};
+
+// ─── IO definitions ───────────────────────────────────────────────────────────
+const IN_DEF = [
+  'I01\nEmergency Stop','I02\nDoor Sensor A','I03\nDoor Sensor B','I04\nBeam 1',
+  'I05\nBeam 2','I06\nLock Signal','I07\nOpen Button','I08\nClose Button',
+  'I09\nCard Reader','I10\nExit Button','I11\nPower OK','I12\nMode Switch',
+  'I13\nAlarm Input','I14\nReserved','I15\nFire Alarm','I16\nRemote Open'
+];
+const OUT_DEF = [
+  'O01\nMotor Fwd','O02\nMotor Rev','O03\nLock Relay','O04\nAlarm Out',
+  'O05\nLED Green','O06\nLED Red','O07\nBuzzer','O08\nStatus LED',
+  'O09\nAux Relay1','O10\nAux Relay2','O11\nCounter','O12\nReserved',
+  'O13\nSpeed Sig','O14\nDir Signal','O15\n24V Power','O16\nFan Out'
+];
+const OUT_COLOR = ['green','green','green','red','green','red','yellow','yellow',
+                   'green','green','green','green','yellow','yellow','green','green'];
+
+const SENSOR_DEF = [
+  'Board A1','Board A2','Board A3','Board A4',
+  'Board B1','Board B2','Beam Top L','Beam Top R',
+  'Beam Mid L','Beam Mid R','Beam Bot L','Beam Bot R',
+  'Door Open L','Door Open R','Door Close L','Door Close R'
+];
+
+const EVENTS = [
+  {t:'2024-03-15 08:23',c:'E001',d:'Emergency stop activated',cls:'red'},
+  {t:'2024-03-15 08:21',c:'E002',d:'CAN bus communication timeout',cls:'red'},
+  {t:'2024-03-14 14:55',c:'I010',d:'Configuration downloaded successfully',cls:''},
+  {t:'2024-03-14 09:30',c:'E003',d:'Motor overcurrent detected',cls:'red'},
+  {t:'2024-03-13 16:45',c:'I020',d:'System startup complete',cls:''},
+  {t:'2024-03-12 11:12',c:'W001',d:'Service interval approaching',cls:'orange'},
+  {t:'2024-03-12 10:00',c:'I020',d:'System startup complete',cls:''},
+];
+
+const SETTINGS = [
+  {n:'Speed normal (rpm)', v:'45', u:'rpm'},
+  {n:'Speed slow (rpm)',   v:'20', u:'rpm'},
+  {n:'Speed fast (rpm)',   v:'60', u:'rpm'},
+  {n:'Open time (ms)',     v:'1500', u:'ms'},
+  {n:'Close time (ms)',    v:'2000', u:'ms'},
+  {n:'Lock delay (ms)',    v:'500',  u:'ms'},
+  {n:'Direction',          v:'CW',   u:'', type:'select', opts:['CW','CCW']},
+  {n:'Auto close',         v:'On',   u:'', type:'select', opts:['On','Off']},
+  {n:'Passage counter',    v:'124850', u:'', ro:true},
+  {n:'Motor type',         v:'3-phase AC', u:'', ro:true},
+];
+
+const DICE = {'D001':'Free passage mode','D002':'Secured mode','D010':'Service mode','D020':'Normal mode','D050':'Emergency evacuation','D100':'Fire alarm – all lanes open'};
+const ECODES = {'E001':'Emergency stop input activated','E002':'CAN bus communication timeout – check wiring','E003':'Motor overcurrent – check motor/inverter','W001':'Service interval approaching – contact service','I010':'Configuration file loaded from control unit','I020':'System startup sequence completed'};
+
+// ─── Status ───────────────────────────────────────────────────────────────────
+function setStatus(msg){ document.getElementById('statusMsg').textContent = msg; }
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  if(st.ioIv && tab!=='io'){ clearInterval(st.ioIv); st.ioIv=null; st.ioRunning=false; }
+  if(st.sensorIv && tab!=='sensors'){ clearInterval(st.sensorIv); st.sensorIv=null; st.sensorRunning=false; }
+  if(st.logIv && tab!=='tools'){ clearInterval(st.logIv); st.logIv=null; st.logRunning=false; }
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const el = document.getElementById('tab-'+tab);
+  if(el) el.classList.add('active');
+  st.currentTab = tab;
+  render(tab);
+}
+function guardedTab(tab){
+  if(!st.connected){ setStatus('Connect to a machine first'); return; }
+  switchTab(tab);
+}
+
+// ─── Renders ──────────────────────────────────────────────────────────────────
+function render(tab){
+  const c = document.getElementById('content');
+  switch(tab){
+    case 'setup':    c.innerHTML = rSetup(); break;
+    case 'update':   c.innerHTML = rUpdate(); break;
+    case 'config':   c.innerHTML = rConfig(); break;
+    case 'io':       c.innerHTML = rIO(); break;
+    case 'tools':    c.innerHTML = rTools(); break;
+    case 'sensors':  c.innerHTML = rSensors(); break;
+    case 'manual':   c.innerHTML = rManual(); break;
+    case 'settings': c.innerHTML = rSettings(); break;
+    case 'audio':    c.innerHTML = rAudio(); break;
+    case 'options':  c.innerHTML = rOptions(); break;
+    case 'maint':    c.innerHTML = rMaint(); break;
+    case 'about':    c.innerHTML = rAbout(); break;
+  }
+  if(tab==='tools') { st.logData=[]; drawGraph(); }
+}
+
+// SETUP
+function rSetup(){
+  const appText = st.connected ? 'Speedlane Lifeline Series' : '';
+  return `
+  <div style="position:relative;border:1px solid #aaa;padding:8px 12px;margin-bottom:16px;display:inline-block;min-width:260px;background:white">
+    <span style="position:absolute;top:-8px;left:8px;background:white;padding:0 4px;font-size:11px">Application info</span>
+    <div style="text-align:center;font-size:12px;color:#333;padding:4px 0;min-height:22px">${appText}</div>
+  </div>
+  <br>
+  <div class="icon-btn-grid">
+    <div class="icon-btn ${!st.connected?'disabled':''}" onclick="${st.connected?'doDownload()':''}">
+      ${SVG.download.replace('class="icon-img"','')}
+      <div style="width:40px;height:40px">${SVG.download}</div>
+      <div class="icon-label">Download</div>
+    </div>
+    <div class="icon-btn ${!st.connected?'disabled':''}" onclick="${st.connected&&st.cfgDl?'doUpload()':''}">
+      <div style="width:40px;height:40px">${SVG.upload}</div>
+      <div class="icon-label">Upload</div>
+    </div>
+    <div class="icon-btn disabled">
+      <div style="width:40px;height:40px">${SVG.default}</div>
+      <div class="icon-label" style="color:#aaa;text-decoration:none">Default</div>
+    </div>
+    <div class="icon-btn" onclick="doLoad()">
+      <div style="width:40px;height:40px">${SVG.load}</div>
+      <div class="icon-label">Load</div>
+    </div>
+    <div class="icon-btn ${!st.cfgDl?'disabled':''}" onclick="${st.cfgDl?'doSave()':''}">
+      <div style="width:40px;height:40px">${SVG.save}</div>
+      <div class="icon-label">Save</div>
+    </div>
+    <div class="icon-btn ${!st.cfgDl?'disabled':''}" onclick="${st.cfgDl?'doExport()':''}">
+      <div style="width:40px;height:40px">${SVG.export}</div>
+      <div class="icon-label">Export</div>
+    </div>
+  </div>
+  <div class="prog-wrap" id="setupProg" style="display:none;max-width:320px"><div class="prog-fill" id="setupFill"></div></div>
+  `;
+}
+
+// UPDATE
+function rUpdate(){
+  return `
+  <button class="update-btn" onclick="doSwUpdate()">
+    <div style="width:36px;height:36px">${SVG.sw_update}</div>
+    <span class="u-label">Software Update</span>
+  </button>
+  <button class="update-btn" onclick="doFactoryReset()">
+    <div style="width:36px;height:36px">${SVG.factory}</div>
+    <span class="u-label">Reset Factory Default</span>
+  </button>
+  <button class="update-btn" onclick="doCfgUpdate()">
+    <div style="width:36px;height:36px">${SVG.cfg_update}</div>
+    <span class="u-label">Update Config Data</span>
+  </button>
+  <button class="update-btn" onclick="doAudioUpd()">
+    <div style="width:36px;height:36px">${SVG.audio_update}</div>
+    <span class="u-label">Audio Update</span>
+  </button>
+  <div class="prog-wrap" id="updProg" style="display:none;max-width:400px"><div class="prog-fill" id="updFill"></div></div>
+  `;
+}
+
+// CONFIG
+function rConfig(){
+  return `
+  <div class="config-group" style="max-width:480px">
+    <div class="config-group-title">User information</div>
+    <div class="config-body">
+      <div class="cfg-row"><span class="cfg-label">Expiry date:</span> <b>2025-04-01</b></div>
+      <div class="cfg-row"><span class="cfg-label">Authorisation level:</span> <b>Service Engineer</b></div>
+    </div>
+  </div>
+  <div class="config-group" style="max-width:480px">
+    <div class="config-group-title">Internationalisation</div>
+    <div class="config-body">
+      <div class="cfg-row">
+        <span class="cfg-label">Language:</span>
+        <select class="cfg-input" onchange="setStatus('Language changed — restart BEST to apply')">
+          <option>English</option><option>Nederlands</option><option>Deutsch</option>
+          <option>Français</option><option>ภาษาไทย</option><option>中文</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="config-group" style="max-width:480px">
+    <div class="config-group-title">Communication</div>
+    <div class="config-body">
+      <div class="cfg-row">
+        <span class="cfg-label">CAN ID:</span>
+        <select class="cfg-input" id="canSel">
+          <option>Direct</option>
+          <option>0x00 Empty control unit</option>
+          <option selected>0x01 Primary</option>
+          <option>0x02 Additional</option>
+          <option>0x08 Night locking door</option>
+          <option>0x09 Auto Folding</option>
+          <option>0x20 Service Collector</option>
+        </select>
+      </div>
+      <div class="cfg-row">
+        <span class="cfg-label">COM port:</span>
+        <select class="cfg-input" id="comSel">
+          <option>COM1</option><option selected>COM3</option><option>COM5</option>
+          <option>COM7</option><option>Bluetooth</option>
+        </select>
+        <button class="win-btn" style="margin-left:6px" onclick="doScan()">Scan</button>
+      </div>
+      <div id="scanOut" style="font-size:11px;color:#555;margin-top:4px"></div>
+    </div>
+  </div>`;
+}
+
+// IO
+function rIO(){
+  const inCells = IN_DEF.map((d,i)=>{
+    const [id,name] = d.split('\n');
+    const on = st.ios_in[i];
+    return `<div class="io-cell" onclick="toggleIn(${i})" title="${name}">
+      <div class="io-led ${on?'green':''}" id="iled${i}"></div>
+      <div class="io-lbl">${id}<br>${name}</div>
+    </div>`;
+  }).join('');
+  const outCells = OUT_DEF.map((d,i)=>{
+    const [id,name] = d.split('\n');
+    const on = st.ios_out[i];
+    return `<div class="io-cell" onclick="toggleOut(${i})" title="${name}">
+      <div class="io-led ${on?OUT_COLOR[i]:''}" id="oled${i}"></div>
+      <div class="io-lbl">${id}<br>${name}</div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="io-controls">
+    <button class="win-btn" id="ioBtn" onclick="toggleIOMonitor()">${st.ioRunning?'Stop':'Start'}</button>
+    <label style="font-size:11px;display:flex;align-items:center;gap:4px">
+      <input type="checkbox" id="inputDelay"> Inputdelay
+    </label>
+  </div>
+  <div class="pulse-row">
+    <button class="win-btn" onclick="pulseSec()">Pulse to secured</button>
+    <button class="win-btn" onclick="pulseNonSec()">Pulse to non secured</button>
+  </div>
+  <div class="io-section-title">Inputs</div>
+  <div class="io-grid">${inCells}</div>
+  <div class="io-section-title">Outputs</div>
+  <div class="io-grid">${outCells}</div>
+  `;
+}
+
+// TOOLS
+function rTools(){
+  return `
+  <button class="update-btn" style="width:320px" onclick="doLogEncoder()">
+    <div style="font-size:14px;width:36px;text-align:center">📊</div>
+    <span style="font-size:12px">Log encoder</span>
+  </button>
+  <button class="update-btn" style="width:320px" onclick="doProductTest()">
+    <div style="font-size:14px;width:36px;text-align:center">🔍</div>
+    <span style="font-size:12px">Product test</span>
+  </button>
+  <div id="toolsExtra" style="margin-top:10px"></div>
+  `;
+}
+
+// SENSORS
+function rSensors(){
+  const cells = SENSOR_DEF.map((n,i)=>`
+    <div class="sensor-item" onclick="toggleSensor(${i})">
+      <div class="s-led ${st.sensors[i]?'on':''}" id="sl${i}"></div>
+      <div class="s-name">${n}</div>
+    </div>`).join('');
+  return `
+  <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+    <button class="win-btn" id="senBtn" onclick="toggleSensorMonitor()">${st.sensorRunning?'Stop':'Read'}</button>
+    <button class="win-btn" onclick="nextScreen()">Screen &gt;</button>
+    <span id="screenLbl" style="font-size:11px;color:#555">Board A</span>
+  </div>
+  <div class="sensor-grid">${cells}</div>`;
+}
+
+// MANUAL
+function rManual(){
+  return `
+  <div style="margin-bottom:10px;font-size:11px;color:#555">Hold button to move. Release to stop.</div>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button class="win-btn" style="width:120px" onmousedown="mvDoors('open')" onmouseup="mvDoors('stop')" ontouchstart="mvDoors('open')" ontouchend="mvDoors('stop')">&lt; Open</button>
+    <button class="win-btn" style="width:80px" onclick="mvDoors('stop')">Stop</button>
+    <button class="win-btn" style="width:120px" onmousedown="mvDoors('close')" onmouseup="mvDoors('stop')" ontouchstart="mvDoors('close')" ontouchend="mvDoors('stop')">Close &gt;</button>
+  </div>
+  <div id="manualStatus" style="font-size:11px;color:#333;margin-bottom:12px"></div>
+  <div style="margin-bottom:6px">
+    <button class="win-btn" onclick="setPos('Home')">Go to Home</button>
+    <button class="win-btn" style="margin-left:4px" onclick="setPos('Open position')">Set Open Position</button>
+    <button class="win-btn" style="margin-left:4px" onclick="setPos('Closed position')">Set Close Position</button>
+  </div>
+  <div style="margin-top:14px">
+    <button class="win-btn" style="background:#ffdddd;border-color:#cc4444;color:#880000;font-weight:bold" onclick="doEStop()">EMERGENCY STOP</button>
+  </div>`;
+}
+
+// SETTINGS
+function rSettings(){
+  const rows = SETTINGS.map((s,i)=>`<tr class="${i%2?'even':''}">
+    <td>${s.n}</td>
+    <td>${s.ro ? `<b>${s.v}</b>` : s.type==='select'
+      ? `<select class="set-val" onchange="SETTINGS[${i}].v=this.value;setStatus('${s.n}: '+this.value)">
+          ${s.opts.map(o=>`<option${o===s.v?' selected':''}>${o}</option>`).join('')}</select>`
+      : `<input class="set-val" value="${s.v}" onchange="SETTINGS[${i}].v=this.value;setStatus('${s.n}: '+this.value)">`}
+    </td>
+    <td style="color:#888">${s.u}</td>
+  </tr>`).join('');
+  return `
+  <div style="margin-bottom:8px;display:flex;gap:6px">
+    <button class="win-btn" onclick="setStatus('Settings applied')">Apply</button>
+    <button class="win-btn" onclick="render('settings');setStatus('Settings reverted')">Revert</button>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// AUDIO
+function rAudio(){
+  const items = [
+    {n:'Volume',v:'75',u:'%'},
+    {n:'Alarm tone',v:'1',u:''},
+    {n:'Access granted sound',v:'Beep_OK.wav',u:''},
+    {n:'Access denied sound',v:'Beep_Err.wav',u:''},
+    {n:'Sound enabled',v:'On',u:'',type:'select',opts:['On','Off']},
+  ];
+  const rows = items.map((s,i)=>`<tr class="${i%2?'even':''}">
+    <td>${s.n}</td>
+    <td>${s.type ? `<select class="set-val"><option>${s.v}</option>${s.opts.map(o=>o!==s.v?`<option>${o}</option>`:'').join('')}</select>`
+      : `<input class="set-val" value="${s.v}">`}
+    </td>
+    <td style="color:#888">${s.u}</td>
+  </tr>`).join('');
+  return `
+  <div style="margin-bottom:8px"><button class="win-btn" onclick="setStatus('Audio settings applied')">Apply</button></div>
+  <table class="data-table">
+    <thead><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// OPTIONS
+function rOptions(){
+  const opts = [
+    {n:'Free Passage',v:false},{n:'Anti-Tailgating',v:true},{n:'Alarm on Tailgate',v:true},
+    {n:'Night Lock',v:false},{n:'Auto-fold on Fire Alarm',v:true},{n:'Sound Module',v:true},
+    {n:'LED Indication',v:true},{n:'Remote Access',v:false},{n:'Passage Counting',v:true},
+    {n:'Two-way Passage',v:false},
+  ];
+  const rows = opts.map((o,i)=>`<tr class="${i%2?'even':''}">
+    <td>${o.n}</td>
+    <td><input type="checkbox" ${o.v?'checked':''} onchange="setStatus('${o.n}: '+(this.checked?'On':'Off'))"></td>
+  </tr>`).join('');
+  return `
+  <div style="margin-bottom:8px"><button class="win-btn" onclick="setStatus('Options applied')">Apply</button></div>
+  <table class="data-table">
+    <thead><tr><th>Option</th><th>Enabled</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// MAINTENANCE
+function rMaint(){
+  const tabs = ['events','counters','dice','errors'];
+  const tabHtml = tabs.map(t=>`<div class="sub-tab ${st.maintTab===t?'active':''}" onclick="swMaint('${t}')">${
+    {events:'Events',counters:'Counters',dice:'Dice codes',errors:'Error log'}[t]
+  }</div>`).join('');
+  let body='';
+  if(st.maintTab==='events'){
+    body = `<table class="data-table"><thead><tr><th>Date/Time</th><th>Code</th><th>Description</th></tr></thead><tbody>
+      ${EVENTS.map(e=>`<tr ondblclick="alert('${e.c}: ${ECODES[e.c]||e.d}')">
+        <td>${e.t}</td>
+        <td style="color:${e.cls==='red'?'#cc0000':e.cls==='orange'?'#cc6600':'#333'};font-weight:${e.cls?'bold':'normal'}">${e.c}</td>
+        <td style="color:${e.cls==='red'?'#cc0000':e.cls==='orange'?'#cc6600':'#333'}">${e.d}</td>
+      </tr>`).join('')}
+    </tbody></table><div style="font-size:10px;color:#888;margin-top:4px">Double-click an event for details</div>`;
+  } else if(st.maintTab==='counters'){
+    body=`<table class="data-table"><thead><tr><th>Counter</th><th>Value</th><th></th></tr></thead><tbody>
+      <tr><td>Total passages</td><td>124,850</td><td><button class="win-btn" onclick="setStatus('Counter cleared')">Clear</button></td></tr>
+      <tr class="even"><td>Authorized passages</td><td>118,432</td><td><button class="win-btn" onclick="setStatus('Counter cleared')">Clear</button></td></tr>
+      <tr><td>Denied attempts</td><td>6,418</td><td><button class="win-btn" onclick="setStatus('Counter cleared')">Clear</button></td></tr>
+      <tr class="even"><td>Emergency events</td><td>12</td><td>–</td></tr>
+      <tr><td>Total revolutions</td><td>124,850</td><td>–</td></tr>
+      <tr class="even"><td>Operating hours</td><td>2,496 h</td><td>–</td></tr>
+    </tbody></table>`;
+  } else if(st.maintTab==='dice'){
+    body=`<table class="data-table"><thead><tr><th>Dice Code</th><th>Description</th></tr></thead><tbody>
+      ${Object.entries(DICE).map(([k,v],i)=>`<tr class="${i%2?'even':''}"><td><b>${k}</b></td><td>${v}</td></tr>`).join('')}
+    </tbody></table>`;
+  } else {
+    body=`<div id="errArea" style="font-size:11px;color:#888">Press Read to download error log.</div>
+    <button class="win-btn" style="margin-bottom:8px" onclick="readErrs()">Read</button><br>`;
+  }
+  return `
+  <button class="win-btn" style="margin-bottom:8px" onclick="setStatus('Downloading all maintenance data...')">Download All</button>
+  <div class="sub-tabs">${tabHtml}</div>
+  ${body}`;
+}
+
+// ABOUT
+function rAbout(){
+  return `
+  <div class="about-panel">
+    <div class="about-logo-box">
+      <div style="font-size:11px;font-weight:900;letter-spacing:-1px;margin-bottom:2px">
+        <span style="color:#000">BOON </span><span style="color:#006600">EDAM</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#555;font-style:italic">
+        <div style="width:14px;height:14px;background:#006600;border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <div style="width:8px;height:8px;background:white;border-radius:50%"></div>
+        </div>
+        your entry experts
+      </div>
+    </div>
+    <div class="about-info">
+      <p><b>Royal Boon Edam International BV</b></p>
+      <p style="margin-top:6px">Version 2.8.4.4</p>
+      <p style="margin-top:14px">Monitoring and configuration</p>
+      <p>Copyright © 2022</p>
+      <p><span class="about-link">http://www.boonedam.com/</span></p>
+    </div>
+  </div>`;
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+function doConnect(){
+  setStatus('Connecting...');
+  setTimeout(()=>{
+    st.connected=true;
+    document.getElementById('verLabel').textContent='Version: 15783';
+    // enable tabs
+    ['io','tools','sensors','manual','settings','audio','options','maint'].forEach(t=>{
+      const el=document.getElementById('tab-'+t);
+      if(el) el.classList.remove('disabled');
+    });
+    // enable quick menu buttons
+    ['qb-upload','qb-download','qb-dlall','qb-ce','qb-ver','qb-disc'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.classList.remove('disabled');
+    });
+    document.getElementById('qb-conn').classList.add('disabled');
+    setStatus('Connected');
+    render(st.currentTab);
+  }, 1200);
+}
+
+function doDisconnect(){
+  if(!st.connected) return;
+  ['io','tools','sensors','manual','settings','audio','options','maint'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el) el.classList.add('disabled');
+  });
+  ['qb-upload','qb-download','qb-dlall','qb-ce','qb-ver','qb-disc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.add('disabled');
+  });
+  document.getElementById('qb-conn').classList.remove('disabled');
+  document.getElementById('verLabel').textContent='Version: –';
+  st.connected=false; st.cfgDl=false;
+  setStatus('Disconnected');
+  if(st.currentTab!=='setup'&&st.currentTab!=='update'&&st.currentTab!=='config'&&st.currentTab!=='about')
+    switchTab('setup');
+  else render(st.currentTab);
+}
+
+function runProgress(barId, fillId, cb, steps=12, delay=100){
+  const bar=document.getElementById(barId), fill=document.getElementById(fillId);
+  if(!bar||!fill) return;
+  bar.style.display=''; let p=0;
+  const iv=setInterval(()=>{
+    p+=steps; fill.style.width=Math.min(p,100)+'%';
+    if(p>=100){ clearInterval(iv); setTimeout(()=>{bar.style.display='none'; if(cb)cb();},300); }
+  },delay);
+}
+
+function doDownload(){
+  if(!st.connected) return;
+  setStatus('Downloading configuration...');
+  runProgress('setupProg','setupFill',()=>{ st.cfgDl=true; setStatus('Download success'); render('setup'); },12,100);
+}
+function doUpload(){ setStatus('Uploading configuration...'); runProgress('setupProg','setupFill',()=>setStatus('Upload success'),10,150); }
+function doLoad(){ st.cfgDl=true; setStatus('Configuration file loaded'); render('setup'); }
+function doSave(){ if(st.cfgDl) setStatus('Configuration saved'); }
+function doExport(){ if(st.cfgDl) setStatus('CSV exported'); }
+
+function doSwUpdate(){
+  setStatus('Software update in progress...');
+  runProgress('updProg','updFill',()=>setStatus('Software update complete'),5,200);
+}
+function doFactoryReset(){
+  if(confirm('Reset to factory defaults?\nThis cannot be undone. Proceed?')){
+    setStatus('Factory reset complete — update config data!');
+  }
+}
+function doCfgUpdate(){ setStatus('Config data updated'); runProgress('updProg','updFill',()=>setStatus('Config data update complete'),8,150); }
+function doAudioUpd(){ setStatus('Audio file uploaded'); }
+
+function doScan(){
+  document.getElementById('scanOut').textContent='Scanning...';
+  setTimeout(()=>{ document.getElementById('scanOut').textContent='Found: COM3 (Bluetooth), COM5 (USB) — CAN IDs available: 0x01'; setStatus('Scan complete'); },1000);
+}
+
+// IO
+function toggleIn(i){ st.ios_in[i]=!st.ios_in[i]; const l=document.getElementById('iled'+i); if(l) l.className='io-led '+(st.ios_in[i]?'green':''); setStatus(IN_DEF[i].split('\n')[0]+' → '+(st.ios_in[i]?'ON':'OFF')); }
+function toggleOut(i){ st.ios_out[i]=!st.ios_out[i]; const l=document.getElementById('oled'+i); if(l) l.className='io-led '+(st.ios_out[i]?OUT_COLOR[i]:''); setStatus(OUT_DEF[i].split('\n')[0]+' → '+(st.ios_out[i]?'ON':'OFF')); }
+function toggleIOMonitor(){
+  st.ioRunning=!st.ioRunning;
+  const b=document.getElementById('ioBtn'); if(b) b.textContent=st.ioRunning?'Stop':'Start';
+  if(st.ioRunning){
+    st.ioIv=setInterval(()=>{
+      if(Math.random()>.6){ const i=Math.floor(Math.random()*16); st.ios_in[i]=!st.ios_in[i]; const l=document.getElementById('iled'+i); if(l) l.className='io-led '+(st.ios_in[i]?'green':''); }
+    },700);
+    setStatus('IO monitoring started');
+  } else { clearInterval(st.ioIv); st.ioIv=null; setStatus('IO monitoring stopped'); }
+}
+function pulseSec(){ setStatus('Pulse to secured sent'); }
+function pulseNonSec(){ setStatus('Pulse to non-secured sent'); }
+
+// Tools
+let logStep=0;
+function doLogEncoder(){
+  const box=document.getElementById('toolsExtra');
+  box.innerHTML=`<div style="font-size:11px;margin-bottom:6px">
+    <button class="win-btn" id="logBtn" onclick="toggleLog()">Start log</button>
+    <span id="logInfo" style="margin-left:10px;color:#555"></span>
+  </div>
+  <div class="log-graph"><canvas id="logCanvas" width="740" height="178"></canvas></div>`;
+  st.logData=[]; drawGraph();
+}
+function toggleLog(){
+  st.logRunning=!st.logRunning;
+  const b=document.getElementById('logBtn'); if(b) b.textContent=st.logRunning?'Stop log':'Start log';
+  if(st.logRunning){
+    st.logIv=setInterval(()=>{
+      const v=35+Math.sin(Date.now()/2000)*14+Math.random()*7;
+      st.logData.push(v); if(st.logData.length>100) st.logData.shift();
+      drawGraph();
+      const el=document.getElementById('logInfo'); if(el) el.textContent=v.toFixed(1)+' rpm';
+    },200);
+  } else { clearInterval(st.logIv); st.logIv=null; }
+}
+function drawGraph(){
+  const c=document.getElementById('logCanvas'); if(!c) return;
+  const ctx=c.getContext('2d'), w=c.width, h=c.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='white'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){ const y=h-g*(h/4); ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.fillStyle='#888'; ctx.font='9px Arial'; ctx.fillText((g*20)+'',2,y-2); }
+  if(!st.logData.length) return;
+  ctx.beginPath(); ctx.strokeStyle='#006600'; ctx.lineWidth=2;
+  st.logData.forEach((v,i)=>{ const x=i/(st.logData.length-1||1)*w, y=h-(v/80)*h; i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.stroke();
+}
+let ptStep=0;
+function doProductTest(){
+  const box=document.getElementById('toolsExtra');
+  box.innerHTML='<div id="ptOut" style="font-size:11px;line-height:1.8"></div>';
+  const steps=[
+    '...',
+    '✔ Emergency stop check — OK',
+    '✔ Door sensor A — OK',
+    '✔ Door sensor B — OK',
+    '✔ Motor forward — OK',
+    '✔ Motor reverse — OK',
+    '⚠ Beam calibration — WARNING (adjust sensor)',
+    '✔ Lock relay — OK',
+    '─────────────────────────',
+    'Product test complete — 7/8 passed',
+  ];
+  let s=0;
+  const iv=setInterval(()=>{
+    const el=document.getElementById('ptOut'); if(!el){clearInterval(iv);return;}
+    el.innerHTML+=`<div style="color:${steps[s].startsWith('✔')?'#006600':steps[s].startsWith('⚠')?'#cc6600':steps[s].startsWith('Product')?'#000099':'#555'}">${steps[s]}</div>`;
+    s++; if(s>=steps.length) clearInterval(iv);
+  },500);
+}
+
+// Sensors
+let screenNum=0;
+function toggleSensor(i){ st.sensors[i]=!st.sensors[i]; const l=document.getElementById('sl'+i); if(l) l.className='s-led '+(st.sensors[i]?'on':''); setStatus(SENSOR_DEF[i]+': '+(st.sensors[i]?'Active':'Inactive')); }
+function toggleSensorMonitor(){
+  st.sensorRunning=!st.sensorRunning;
+  const b=document.getElementById('senBtn'); if(b) b.textContent=st.sensorRunning?'Stop':'Read';
+  if(st.sensorRunning){
+    st.sensorIv=setInterval(()=>{
+      const i=Math.floor(Math.random()*16); st.sensors[i]=!st.sensors[i];
+      const l=document.getElementById('sl'+i); if(l) l.className='s-led '+(st.sensors[i]?'on':'');
+    },600);
+    setStatus('Sensor monitoring started');
+  } else { clearInterval(st.sensorIv); st.sensorIv=null; setStatus('Sensor monitoring stopped'); }
+}
+function nextScreen(){ screenNum=(screenNum+1)%3; const el=document.getElementById('screenLbl'); if(el) el.textContent='Board '+['A','B','C'][screenNum]; }
+
+// Manual
+function mvDoors(cmd){ const el=document.getElementById('manualStatus'); if(el) el.textContent={open:'→ Opening...',close:'→ Closing...',stop:'Stopped'}[cmd]; setStatus('Manual: '+cmd); }
+function setPos(p){ setStatus('Position set: '+p); }
+function doEStop(){ const el=document.getElementById('manualStatus'); if(el) el.innerHTML='<span style="color:#cc0000;font-weight:bold">EMERGENCY STOP ACTIVE</span>'; setStatus('Emergency stop activated'); }
+
+// Maintenance
+function swMaint(t){ st.maintTab=t; render('maint'); }
+function readErrs(){
+  const el=document.getElementById('errArea'); if(!el) return;
+  el.innerHTML='Reading...';
+  setTimeout(()=>{
+    el.innerHTML=`<table class="data-table"><thead><tr><th>Date/Time</th><th>Code</th><th>Description</th></tr></thead><tbody>
+      ${EVENTS.filter(e=>e.cls==='red').map(e=>`<tr><td>${e.t}</td><td style="color:#cc0000;font-weight:bold">${e.c}</td><td>${e.d}</td></tr>`).join('')}
+    </tbody></table>`;
+  }, 800);
+}
+
+// Quick menu modals
+function openDice(){
+  openModal('Search Dice code', `
+    <div style="margin-bottom:10px;font-size:11px">Enter a Dice code to see its description:</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <input class="modal-input" id="diceIn" placeholder="e.g. D001" style="width:90px">
+      <button class="win-btn" onclick="lookupDice()">Search</button>
+    </div>
+    <div id="diceRes" style="font-size:11px;color:#006600"></div>
+    <hr style="margin:10px 0;border-color:#ddd">
+    <div style="font-size:11px;font-weight:bold;margin-bottom:6px">Active Dice codes:</div>
+    ${Object.entries(DICE).map(([k,v])=>`<div style="font-size:11px;margin-bottom:3px"><b>${k}</b> — ${v}</div>`).join('')}
+  `);
+}
+function lookupDice(){ const v=(document.getElementById('diceIn').value||'').toUpperCase(); const r=document.getElementById('diceRes'); if(r) r.textContent=DICE[v]?v+': '+DICE[v]:'Code not found'; r.style.color=DICE[v]?'#006600':'#cc0000'; }
+
+function openError(){
+  openModal('Search Error code', `
+    <div style="margin-bottom:10px;font-size:11px">Enter an event code to see its description:</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <input class="modal-input" id="errIn" placeholder="e.g. E001" style="width:90px">
+      <button class="win-btn" onclick="lookupErr()">Search</button>
+    </div>
+    <div id="errRes" style="font-size:11px;color:#006600"></div>
+  `);
+}
+function lookupErr(){ const v=(document.getElementById('errIn').value||'').toUpperCase(); const r=document.getElementById('errRes'); if(r) r.textContent=ECODES[v]?v+': '+ECODES[v]:'Code not found'; r.style.color=ECODES[v]?'#006600':'#cc0000'; }
+
+function openCE(){
+  openModal('CE number', `
+    <div class="modal-row"><span class="modal-lbl">Current CE number:</span><b id="ceDisplay">BE-2023-001-A</b></div>
+    <div class="modal-row" style="margin-top:10px"><span class="modal-lbl">New CE number:</span>
+      <input class="modal-input" id="ceIn" value="BE-2023-001-A" style="width:160px">
+    </div>
+  `, ()=>{ setStatus('CE number updated: '+document.getElementById('ceIn').value); closeModal(); }, 'Save');
+}
+
+function openVersions(){
+  openModal('Versions', `
+    <table class="data-table" style="width:320px">
+      <tr><td>BEST</td><td><b>v2.8.4.4</b></td></tr>
+      <tr class="even"><td>Control unit</td><td><b>v3.2.1</b></td></tr>
+      <tr><td>Config data</td><td><b>v2.1.0</b></td></tr>
+      <tr class="even"><td>Sound module</td><td><b>v1.3.2</b></td></tr>
+      <tr><td>Bootloader</td><td><b>v1.0.5</b></td></tr>
+    </table>
+  `);
+}
+
+function toggleCRC(){ setStatus('CRC check: '+(document.getElementById('crcChk').checked?'ON':'OFF')); }
+function doDownloadAll(){ setStatus('Downloading all data...'); setTimeout(()=>setStatus('Download all complete'),2000); }
+
+// ─── Modal helpers ────────────────────────────────────────────────────────────
+function openModal(title, body, okCb, okLabel){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  const f=document.getElementById('modalFooter');
+  f.innerHTML=okCb
+    ? `<button class="win-btn" onclick="(${okCb.toString()})()">  ${okLabel||'OK'}  </button><button class="win-btn" onclick="closeModal()">Cancel</button>`
+    : `<button class="win-btn" onclick="closeModal()">Close</button>`;
+  if(okCb) f.querySelector('.win-btn').onclick=okCb;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
+function bgClick(e){ if(e.target.id==='modalBg') closeModal(); }
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+render('setup');
+</script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STULZ C7000 Advanced — Simulator</title>
+<style>
+  :root{--case1:#454b52;--case2:#23272c;--face:#30353b;
+    --key:#e4e7ea;--key2:#c3c7cc;--keyb:#787d85;--keytx:#22262b;
+    --red:#e23b2f;--redoff:#5a2420;--grn:#39c172;--grnoff:#214a33;}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 50% 0%,#1a2330,#0d1117 70%);
+       font-family:Tahoma,"Segoe UI",system-ui,Arial,sans-serif;color:#e8f1f5;
+       min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:22px 12px;}
+  h1.title{font-size:18px;font-weight:600;margin:0 0 4px}
+  .sub{color:#8aa6b1;font-size:13px;margin-bottom:16px;text-align:center}.sub b{color:#19b6e6}
+  .device{background:linear-gradient(var(--case1),var(--case2));padding:16px;border-radius:12px;
+          box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);border:1px solid #4b515a;width:660px;max-width:97vw}
+  .brand{display:flex;align-items:center;gap:10px;color:#cdd5dd;font-size:13px;font-weight:800;letter-spacing:3px;margin-bottom:12px}
+  .brand small{font-weight:600;letter-spacing:1px;color:#99a2ab;font-size:10px}
+  .panel{display:flex;gap:14px;align-items:stretch}
+  .lcd{flex:1;background:#cfd8c6;border:4px solid #0b0f08;border-radius:3px;padding:7px;
+       box-shadow:inset 0 0 22px rgba(0,0,0,.25);display:flex}
+  .lcd.off{filter:brightness(.55) grayscale(.5)}
+  #lcdCanvas{width:100%;height:auto;display:block;image-rendering:pixelated}
+  .keys{width:120px;display:flex;flex-direction:column;align-items:center;gap:9px;background:var(--face);border-radius:7px;padding:12px 8px;border:1px solid #1d2126}
+  .klabel{font-size:8.5px;color:#aab2bb;letter-spacing:.5px;margin-top:-6px;text-align:center}
+  .rocker{display:flex;width:100%;border-radius:6px;overflow:hidden;border:1px solid var(--keyb)}
+  .rocker button{flex:1;border:none;background:linear-gradient(var(--key),var(--key2));color:var(--keytx);font-size:16px;font-weight:800;padding:9px 0;cursor:pointer;font-family:inherit}
+  .rocker button:active{filter:brightness(.92)}
+  .rocker button+button{border-left:1px solid var(--keyb)}
+  .kbtn{width:100%;border:1px solid var(--keyb);border-radius:6px;background:linear-gradient(var(--key),var(--key2));color:var(--keytx);font-size:12.5px;font-weight:700;padding:8px 0;cursor:pointer;font-family:inherit}
+  .kbtn:active{transform:translateY(1px)}
+  .leds{display:flex;gap:20px;margin-top:2px}
+  .ledbox{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8.5px;color:#aab2bb}
+  .led{width:12px;height:12px;border-radius:50%}
+  .led.alarm{background:var(--redoff)}.led.alarm.on{background:var(--red);box-shadow:0 0 8px var(--red)}
+  .led.alarm.blink{animation:bl .55s steps(1) infinite}
+  .led.run{background:var(--grnoff)}.led.run.on{background:var(--grn);box-shadow:0 0 8px var(--grn)}
+  @keyframes bl{50%{opacity:.25}}
+  .onoff{width:44px;height:44px;border-radius:50%;border:2px solid var(--keyb);background:radial-gradient(circle at 40% 35%,#eef1f4,#b1b7be);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2a2f34;font-size:18px;margin-top:2px}
+  .onoff:active{transform:scale(.96)}
+  .buzz{font-size:8.5px;color:#aab2bb;display:flex;align-items:center;gap:4px;margin-top:2px}
+  .buzz .ic{width:8px;height:8px;border-radius:50%;background:#555}
+  .buzz.on .ic{background:#f5a623;box-shadow:0 0 6px #f5a623;animation:bl .5s steps(1) infinite}
+  .console{margin-top:16px;width:660px;max-width:97vw;background:#11161d;border:1px solid #243240;border-radius:12px;padding:13px 15px}
+  .console h2{margin:0 0 3px;font-size:13px;color:#19b6e6;letter-spacing:1px;text-transform:uppercase}
+  .console p{margin:0 0 11px;color:#8aa6b1;font-size:12px}
+  .console .grid{display:flex;gap:9px;flex-wrap:wrap}
+  .cbtn{padding:7px 14px;border-radius:7px;border:1px solid #2a3a45;background:#16222c;color:#e8f1f5;font-size:13px;cursor:pointer;font-family:inherit}
+  .cbtn:hover{background:#1d2c38}.cbtn.danger{border-color:#7a1f1f;background:#2a0e0e;color:#ff9b9b}
+  .legend{margin-top:12px;color:#8aa6b1;font-size:12px;text-align:center;max-width:660px;line-height:1.6}
+  kbd{background:#0a1923;border:1px solid #2a3a45;border-radius:4px;padding:1px 6px;font-size:11px;color:#cfe}
+</style>
+</head>
+<body>
+  <h1 class="title">STULZ C7000 Advanced — Operator Panel</h1>
+  <p class="sub">Dot-matrix LCD faithful to <b>C7000 Operating Instructions (G57)</b> — main menu of one A/C unit</p>
+  <div class="device">
+    <div class="brand">STULZ <small>C7000 Advanced</small></div>
+    <div class="panel">
+      <div class="lcd off" id="lcd"><canvas id="lcdCanvas"></canvas></div>
+      <div class="keys">
+        <div class="rocker"><button onclick="key('prev')">&lt;</button><button onclick="key('next')">&gt;</button></div>
+        <div class="klabel">Selector &lt; &gt;</div>
+        <button class="kbtn" onclick="key('ok')">Ok</button><div class="klabel">Confirmation</div>
+        <button class="kbtn" onclick="key('reset')">Reset</button><div class="klabel">Reset</div>
+        <div class="leds"><div class="ledbox"><span class="led alarm" id="ledAlarm"></span><span>Alarm</span></div>
+          <div class="ledbox"><span class="led run" id="ledRun"></span><span>On/off</span></div></div>
+        <div class="onoff" onclick="key('onoff')" title="On/off key">&#9211;</div><div class="klabel">On/off key</div>
+        <div class="buzz" id="buzz"><span class="ic"></span><span>Audible</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="console">
+    <h2>&#9881; Simulation Console</h2>
+    <p>Press <kbd>Power</kbd>, then use <kbd>&lt;</kbd> <kbd>&gt;</kbd> (selector) and <kbd>Ok</kbd> to navigate.</p>
+    <div class="grid">
+      <button class="cbtn" id="pwrBtn" onclick="togglePower()">&#9211; Power on</button>
+      <button class="cbtn danger" onclick="simAlarm('High temperature')">&#9888; Temp alarm</button>
+      <button class="cbtn danger" onclick="simAlarm('High pressure HP1')">&#9888; HP alarm</button>
+      <button class="cbtn" onclick="simAlarm('Maintenance due')">&#9888; Service</button>
+    </div>
+  </div>
+  <p class="legend">Operate / Config passwords are <b>0000</b>. First screen = C7000IOC main menu (manual p.13). Values, unit name &amp; symbols are sample data.</p>
+<script>
+/* ===== dot-matrix LCD engine ===== */
+var GW=220,GH=104,SC=4,vc,vx,oc,ox;
+var FONT='"DejaVu Sans Mono","Liberation Mono","Courier New",monospace';
+function initLCD(){
+  vc=document.getElementById('lcdCanvas');vc.width=GW*SC;vc.height=GH*SC;vx=vc.getContext('2d');
+  oc=document.createElement('canvas');oc.width=GW;oc.height=GH;ox=oc.getContext('2d');ox.textBaseline='top';
+}
+function ocClear(){ox.fillStyle='#000';ox.fillRect(0,0,GW,GH);}
+function setF(sz){ox.font='bold '+sz+'px '+FONT;}
+function tw(s){return ox.measureText(s).width;}
+function txt(x,y,s,sz){setF(sz);ox.fillStyle='#fff';ox.fillText(s,x,y);}
+function inv(x,y,s,sz,padw){setF(sz);var w=(padw||tw(s)+4);ox.fillStyle='#fff';ox.fillRect(x-2,y-1,w,sz+3);ox.fillStyle='#000';ox.fillText(s,x,y);return w;}
+function hline(y){ox.fillStyle='#fff';ox.fillRect(0,y,GW,1);}
+function snow(cx,cy,r){ox.strokeStyle='#fff';ox.lineWidth=1;for(var a=0;a<360;a+=45){ox.beginPath();ox.moveTo(cx+.5,cy+.5);ox.lineTo(cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180));ox.stroke();}}
+function sun(cx,cy,r){ox.strokeStyle='#fff';ox.lineWidth=1;ox.beginPath();ox.arc(cx,cy,r-3,0,7);ox.stroke();for(var a=0;a<360;a+=45){ox.fillStyle='#fff';ox.fillRect(Math.round(cx+r*Math.cos(a*Math.PI/180)),Math.round(cy+r*Math.sin(a*Math.PI/180)),1,1);}}
+function moon(cx,cy,r){ox.fillStyle='#fff';ox.beginPath();ox.arc(cx,cy,r,0,7);ox.fill();ox.fillStyle='#000';ox.beginPath();ox.arc(cx+r*.55,cy-r*.45,r,0,7);ox.fill();}
+function wrench(cx,cy){ox.strokeStyle='#fff';ox.lineWidth=1;ox.beginPath();ox.moveTo(cx,cy+6);ox.lineTo(cx+5,cy+1);ox.stroke();ox.strokeRect(cx+4,cy-3,4,4);}
+function warn(cx,cy){ox.strokeStyle='#fff';ox.lineWidth=1;ox.beginPath();ox.moveTo(cx,cy+8);ox.lineTo(cx+5,cy-2);ox.lineTo(cx+10,cy+8);ox.closePath();ox.stroke();ox.fillStyle='#fff';ox.fillRect(cx+4,cy+1,1,4);ox.fillRect(cx+4,cy+6,1,1);}
+function flush(){
+  var d=ox.getImageData(0,0,GW,GH).data;
+  vx.fillStyle='#cfd8c6';vx.fillRect(0,0,vc.width,vc.height);
+  vx.fillStyle='#11180d';
+  for(var y=0;y<GH;y++){for(var x=0;x<GW;x++){if(d[(y*GW+x)*4]>105)vx.fillRect(x*SC,y*SC,SC-1,SC-1);}}
+}
+/* ===== state ===== */
+var U={name:'CRAC-01',type:'CW',t:24.0,h:46.0,addr:5,gaddr:1,ctrl:'room'};
+var P={power:false,screen:'main',lang:'en',unit:'C',mainCur:1,stack:[],cur:0,edit:false,
+  pw:{target:null,digits:[0,0,0,0],dcur:0},runOn:'On',dayNight:'Day',manual:'Off',
+  sp1:24.0,sp2:26.0,sph:50,buzz:'On',pitch:1,backlight:'Auto',maint:8000,busDelay:60,
+  alarm:null,alarmAck:false,buzzer:false,maintDue:false,clockBase:null,clockSet:null};
+var ML=['return','info','operate','config'];
+var PW_OPERATE='0000',PW_CONFIG='0000';
+function clk(){return P.clockBase!=null?new Date(P.clockBase+(Date.now()-P.clockSet)):new Date();}
+function p2(n){return String(n).padStart(2,'0');}
+function fmtTime(d){return p2(d.getHours())+':'+p2(d.getMinutes());}
+function tval(c){return P.unit==='F'?(c*9/5+32).toFixed(1):c.toFixed(1);}
+function tunit(){return P.unit==='F'?'°F':'°C';}
+function convVal(s){if(P.unit!=='F')return s;return String(s).replace(/(-?\d+(?:\.\d+)?)\s*°C/g,function(_,n){return (parseFloat(n)*9/5+32).toFixed(1)+' °F';});}
+/* ===== trees ===== */
+function sel(t,i){return {t:'sel',title:t,items:i};}
+function par(t,r){return {t:'par',title:t,rows:r};}
+function r(k,v){return {k:k,v:v};}
+function infoTree(){return sel('Info',[
+  {label:'Values',child:sel('Values',[
+    {label:'Air',child:sel('Air',[
+      {label:'Temperature',child:par('Temperature',[r('Control','24.0 °C'),r('Setp.1','24.0 °C'),r('Setp.2','26.0 °C'),r('Room','24.0 °C'),r('Supply','18.5 °C'),r('Outside','15.2 °C')])},
+      {label:'Humidity',child:par('Humidity',[r('Actual','46 %'),r('Setpoint','50 %'),r('Dewpoint','11.2 °C')])},
+      {label:'Pressure',child:par('Pressure',[r('Supply dp','25 Pa'),r('Setpoint','20 Pa'),r('Room','5 Pa')])},
+      {label:'Water',child:par('Water',[r('Volume','3.2m3/h'),r('Inlet','9.5 °C'),r('Return','15.0 °C')])}
+    ])},
+    {label:'Refrigerant',child:par('Refrig. 1',[r('Cond.p','28.5bar'),r('Hotgas','75.0 °C'),r('Evap.p','6.2bar'),r('Suction','12.0 °C')])},
+    {label:'misc.data',child:par('misc.data',[r('Sensor','21.0 °C')])}
+  ])},
+  {label:'Components',child:sel('Components',[
+    {label:'Cooling',child:par('Cooling',[r('Compr.','-1-'),r('FCvalve','40 %'),r('EEV SH','6.0 K'),r('EEVopen','45 %')])},
+    {label:'Fan',child:par('Fan',[r('Fan','-1-'),r('Speed','65 %')])},
+    {label:'Heating',child:par('Heating',[r('Stage1','-0-'),r('Stage2','-0-')])},
+    {label:'Humidifier',child:par('Humidifier',[r('Humid.','-0-')])},
+    {label:'Dehumidif.',child:par('Dehumid.',[r('Dehum.','-0-')])}
+  ])},
+  {label:'State',child:par('Runtimes',[r('Unit','12345h'),r('Cooling','8021h'),r('Heating','1204h'),r('Service','01.03.26')])},
+  {label:'Setpoints',child:par('Setpoints',[r('Temp1','24.0 °C'),r('Temp2','26.0 °C'),r('Humid','50 %'),r('Hyst','1.0 K')])},
+  {label:'Events',child:par('Events',[r('1','HP1 alarm'),r('2','unit ON'),r('3','service'),r('4','power up')])},
+  {label:'Equip',child:par('Equip',[r('Sensors','6'),r('Comp CW','1'),r('Fan EC','2'),r('EAIO','1')])}
+]);}
+function operateTree(){return par('Operate',[
+  {k:'Control',prop:'runOn',opts:['On','Off']},
+  {k:'Setp.1',prop:'sp1',num:[16,28,0.5],suf:'tC'},
+  {k:'Setp.2',prop:'sp2',num:[16,28,0.5],suf:'tC'},
+  {k:'Humid sp',prop:'sph',num:[30,70,1],suf:'%'},
+  {k:'Day/Night',prop:'dayNight',opts:['Day','Night']},
+  {k:'Manual',prop:'manual',opts:['Off','On']}
+]);}
+function configTree(){return sel('Config',[
+  {label:'Settings',child:par('Settings',[
+    {k:'Temp unit',prop:'unit',opts:['C','F'],disp:function(v){return v==='C'?'°C':'°F';}},
+    {k:'Language',prop:'lang',opts:['en','de'],disp:function(v){return v==='en'?'Engl':'Deut';}},
+    {k:'Buzzer',prop:'buzz',opts:['On','Off']},
+    {k:'Pitch',prop:'pitch',num:[1,3,1]},
+    {k:'Backlight',prop:'backlight',opts:['On','Auto']}
+  ])},
+  {label:'Maintenance',child:par('Mainten.',[
+    {k:'Service',prop:'maint',opts:[2000,4000,8000],suf:'h'},
+    {k:'Busdelay',prop:'busDelay',opts:[30,60,120],suf:'s'}
+  ])},
+  {label:'Date+time',child:{t:'clock',title:'Date+time'}},
+  {label:'Sensors',child:par('Sensors',[r('1Room','11'),r('2Supply','12'),r('3Outsd','13'),r('4Humid','20'),r('5HP1','31'),r('6LP1','33')])},
+  {label:'In/Outputs',child:par('In/Out',[r('Alarm','DO1'),r('Winter','DI3'),r('Remote','DI1'),r('UPS','DI4')])}
+]);}
+/* ===== render screens ===== */
+function setLED(){
+  var a=document.getElementById('ledAlarm'),rn=document.getElementById('ledRun'),bz=document.getElementById('buzz');
+  if(P.alarm&&!P.alarmAck)a.className='led alarm on blink';else if(P.alarm)a.className='led alarm on';else a.className='led alarm';
+  rn.className='led run'+(P.power&&P.runOn==='On'?' on':'');
+  bz.className='buzz'+(P.buzzer?' on':'');
+}
+function render(){
+  setLED();var lcd=document.getElementById('lcd');
+  if(!P.power){lcd.className='lcd off';ocClear();flush();return;}
+  lcd.className='lcd';
+  if(P.screen==='main')renderMain();
+  else if(P.screen==='password')renderPw();
+  else if(P.screen==='menu')renderMenu();
+  else if(P.screen==='clock')renderClock();
+}
+function renderMain(){
+  ocClear();var on=(P.runOn==='On');var xs=[4,60,112,172];
+  for(var i=0;i<4;i++){if(P.mainCur===i)inv(xs[i],2,ML[i],11);else txt(xs[i],2,ML[i],11);}
+  hline(16);
+  setF(12);txt(110-tw(U.ctrl)/2,21,U.ctrl,12);
+  var tv=tval(U.t);txt(52,32,tv,26);setF(26);var vw=tw(tv);txt(52+vw+3,37,tunit(),15);
+  if(on)snow(190,50,8);else if(P.alarm)warn(186,42);
+  if(P.maintDue)wrench(202,42);
+  setF(17);var hh=U.h.toFixed(1)+' %';txt(110-tw(hh)/2,67,hh,17);
+  if(P.dayNight==='Day')sun(27,53,8);else moon(24,50,7);
+  hline(90);
+  txt(3,92,(P.alarm?'!ALM':(on?'on':'stop')),10);
+  setF(10);txt(110-tw(U.name)/2,92,U.name,10);
+  var bb=U.addr+'  '+fmtTime(clk());setF(10);txt(GW-tw(bb)-2,92,bb,10);
+  flush();
+}
+function curNode(){return P.stack[P.stack.length-1];}
+function rowVal(rw){var v=P[rw.prop];if(rw.disp)return rw.disp(v);if(rw.suf==='tC')return tval(v)+tunit();if(rw.suf)return ''+v+rw.suf;return ''+v;}
+function drawList(title,entries,cur){
+  ocClear();
+  txt(3,2,title,11);var info='#'+U.addr+' '+fmtTime(clk());setF(9);txt(GW-tw(info)-2,3,info,9);hline(16);
+  var top=20,rh=14,vis=Math.floor((GH-top)/rh),start=0;
+  if(cur>=vis)start=cur-vis+1;
+  for(var i=0;i<vis&&start+i<entries.length;i++){
+    var idx=start+i,e=entries[idx],y=top+i*rh,isc=(cur===idx);
+    if(isc){ox.fillStyle='#fff';ox.fillRect(0,y-1,GW,rh);ox.fillStyle='#000';}else ox.fillStyle='#fff';
+    setF(11);ox.fillText(e.label,4,y);
+    if(e.val){ox.fillText(e.val,GW-tw(e.val)-4,y);}
+  }
+  flush();
+}
+function renderMenu(){
+  var n=curNode();var entries=[{label:'‹ return',val:''}];
+  if(n.t==='sel'){for(var i=0;i<n.items.length;i++)entries.push({label:n.items[i].label,val:'›'});}
+  else{for(var j=0;j<n.rows.length;j++){var rw=n.rows[j];var val=rw.v!==undefined?convVal(rw.v):rowVal(rw);if(P.cur===j+1&&P.edit)val='['+val+']';entries.push({label:rw.k,val:val});}}
+  drawList(n.title,entries,P.cur);
+}
+function renderPw(){
+  ocClear();txt(4,2,ML[P.pw.target==='operate'?2:3],11);hline(16);txt(40,30,'Enter password',10);
+  for(var i=0;i<4;i++){var x=74+i*22;
+    if(P.pw.dcur===i){ox.fillStyle='#fff';ox.fillRect(x-3,46,18,22);ox.fillStyle='#000';ox.font='bold 18px '+FONT;ox.fillText(''+P.pw.digits[i],x,48);}
+    else txt(x,48,''+P.pw.digits[i],18);
+    ox.fillStyle='#fff';ox.fillRect(x-3,70,15,1);}
+  if(P._wrong)txt(56,80,'wrong password',10);
+  flush();
+}
+function renderClock(){
+  var c=P.clockEdit,f=[['Year',c.y],['Month',c.mo],['Day',c.d],['Hour',c.h],['Min',c.mi],['Sec',c.s]];
+  var entries=[{label:'‹ return (save)',val:''}];
+  for(var i=0;i<6;i++){var v=''+f[i][1];if(P.cur===i+1&&P.edit)v='['+v+']';entries.push({label:f[i][0],val:v});}
+  drawList('Date+time',entries,P.cur);
+}
+/* ===== navigation ===== */
+function key(act){
+  if(!P.power)return;
+  if(P.screen==='main')navMain(act);else if(P.screen==='password')navPw(act);
+  else if(P.screen==='menu')navMenu(act);else if(P.screen==='clock')navClock(act);
+  if(act==='reset')doReset();if(act==='onoff')doOnOff();render();
+}
+function navMain(act){
+  if(act==='next')P.mainCur=(P.mainCur+1)%4;else if(act==='prev')P.mainCur=(P.mainCur+3)%4;
+  else if(act==='ok'){var f=ML[P.mainCur];
+    if(f==='info'){P.stack=[infoTree()];P.cur=0;P.edit=false;P.screen='menu';}
+    else if(f==='operate')startPw('operate');else if(f==='config')startPw('config');}
+}
+function startPw(t){P.screen='password';P._wrong=false;P.pw={target:t,digits:[0,0,0,0],dcur:0};}
+function navPw(act){var pw=P.pw;P._wrong=false;
+  if(act==='ok')pw.digits[pw.dcur]=(pw.digits[pw.dcur]+1)%10;
+  else if(act==='prev')pw.dcur=Math.max(0,pw.dcur-1);
+  else if(act==='next'){if(pw.dcur<3)pw.dcur++;else{var e=pw.digits.join('');
+    var ok=(pw.target==='operate'&&e===PW_OPERATE)||(pw.target==='config'&&e===PW_CONFIG);
+    if(ok){P.stack=[pw.target==='operate'?operateTree():configTree()];P.cur=0;P.edit=false;P.screen='menu';}
+    else{P._wrong=true;P.pw={target:pw.target,digits:[0,0,0,0],dcur:0};}}}
+}
+function navMenu(act){var n=curNode();var count=(n.t==='sel')?n.items.length:n.rows.length;
+  if(P.edit){var rw=n.rows[P.cur-1];changeVal(rw,act==='next'?1:act==='prev'?-1:0);if(act==='ok')P.edit=false;return;}
+  if(act==='next')P.cur=(P.cur+1)%(count+1);else if(act==='prev')P.cur=(P.cur-1+count+1)%(count+1);
+  else if(act==='ok'){
+    if(P.cur===0){P.stack.pop();if(P.stack.length===0)P.screen='main';P.cur=0;return;}
+    if(n.t==='sel'){var ch=n.items[P.cur-1].child;
+      if(ch.t==='clock'){var d=clk();P.clockEdit={y:d.getFullYear(),mo:d.getMonth()+1,d:d.getDate(),h:d.getHours(),mi:d.getMinutes(),s:d.getSeconds()};P.screen='clock';P.cur=0;return;}
+      P.stack.push(ch);P.cur=0;}
+    else{var rw=n.rows[P.cur-1];if(rw.prop)P.edit=true;}}
+}
+function changeVal(rw,dir){if(!rw||!rw.prop||dir===0)return;
+  if(rw.opts){var idx=rw.opts.indexOf(P[rw.prop]);if(idx<0)idx=0;idx=(idx+dir+rw.opts.length)%rw.opts.length;P[rw.prop]=rw.opts[idx];}
+  else if(rw.num){var v=Math.round((P[rw.prop]+dir*rw.num[2])/rw.num[2])*rw.num[2];if(v<rw.num[0])v=rw.num[0];if(v>rw.num[1])v=rw.num[1];P[rw.prop]=v;}
+  if(rw.prop==='runOn')U.ctrl=(P.runOn==='On')?'room':'off';
+}
+function navClock(act){var c=P.clockEdit,keys=['y','mo','d','h','mi','s'];
+  if(P.edit){if(act==='next'||act==='prev'){var k=keys[P.cur-1],dir=act==='next'?1:-1,
+    lim={y:[2000,2099],mo:[1,12],d:[1,31],h:[0,23],mi:[0,59],s:[0,59]}[k];
+    c[k]+=dir;if(c[k]<lim[0])c[k]=lim[1];if(c[k]>lim[1])c[k]=lim[0];}else if(act==='ok')P.edit=false;return;}
+  if(act==='next')P.cur=(P.cur+1)%7;else if(act==='prev')P.cur=(P.cur-1+7)%7;
+  else if(act==='ok'){if(P.cur===0){var b=new Date(c.y,c.mo-1,c.d,c.h,c.mi,c.s);if(!isNaN(b)){P.clockBase=b.getTime();P.clockSet=Date.now();}P.screen='menu';P.cur=0;return;}P.edit=true;}
+}
+/* ===== actions ===== */
+function doReset(){if(!P.alarm)return;if(!P.alarmAck){P.alarmAck=true;P.buzzer=false;}else{P.alarm=null;P.alarmAck=false;P.maintDue=false;}}
+function doOnOff(){P.runOn=(P.runOn==='On')?'Off':'On';U.ctrl=(P.runOn==='On')?'room':'off';}
+function simAlarm(txt){if(!P.power)togglePower();P.alarm=txt;P.alarmAck=false;P.buzzer=(P.buzz==='On');if(/mainten|service/i.test(txt))P.maintDue=true;P.screen='main';render();}
+function togglePower(){P.power=!P.power;document.getElementById('pwrBtn').innerHTML=(P.power?'⏻ Power off':'⏻ Power on');if(P.power){P.screen='main';P.mainCur=1;}render();}
+initLCD();setInterval(function(){if(P.power&&P.screen!=='clock'&&!P.edit)render();},1000);render();
+</script>
+</body>
+</html>
