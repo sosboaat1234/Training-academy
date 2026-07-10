@@ -394,7 +394,7 @@ const getProduct = id => PRODUCTS.find(p=>p.id===id);
 const PLACEHOLDER_VIDEO = "ScMzIvxBSi4";              // วิดีโอตัวอย่าง = ถือว่ายังไม่มีคลิปจริง
 const hasVideo = p => p.videoId && p.videoId !== PLACEHOLDER_VIDEO;
 const hasQuiz  = p => p.quizLink && p.quizLink !== "#";
-const isReady  = p => hasVideo(p) || hasQuiz(p) || (p.docs && p.docs.length>0) || !!p.demo;
+const isReady  = p => hasVideo(p) || hasQuiz(p) || (p.docs && p.docs.length>0) || !!p.demo || (p.tools && p.tools.length>0);
 
 function videoEmbed(p){
   const v = (p.videoId || p.video || "").trim();
@@ -623,6 +623,13 @@ function renderContent(){
             </div>`).join("")}
         </div>
       </div>` : "";
+  const toolsCard = (p.tools && p.tools.length) ? `
+      <div class="card">
+        <h3 class="section-title">${svg("box")} เครื่องมือ</h3>
+        <div class="doc-list">
+          ${p.tools.map(t=>`<a class="doc-item" href="${t.url}" target="_blank" rel="noopener"><span class="di-ic">${svg("box")}</span><span>${t.title}</span><span class="di-go">${svg("arrow")}</span></a>`).join("")}
+        </div>
+      </div>` : "";
   const ready = isReady(p);
   const noQuiz = (p.quizLink === null || p.quizLink === undefined);
   let quizCard;
@@ -665,6 +672,7 @@ function renderContent(){
       ${videoCard}
       ${docsCard}
       ${openQCard}
+      ${toolsCard}
       ${demoCard}
       ${quizCard}
       <div class="lesson-nav">

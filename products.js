@@ -23,6 +23,7 @@ const PRODUCTS = [
     docs:[
       {title:"Diesel Generator", url:"https://drive.google.com/file/d/1RjpPSaMVWbkX6vnpQefVF2g7kdHpenYT/view?usp=sharing"},
     ],
+    tools:[{title:"เครื่องคำนวณน้ำมันเชื้อเพลิง Genset (Fuel Calculator)", url:"genset-fuel-calculator.html"}],
     quizLink:"#",
   },
   { id:"activefilter", icon:"plug", color:"var(--amber-500)", eyebrow:"POWER",
