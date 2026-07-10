@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เครื่องคำนวณอัตราการใช้น้ำมันเครื่องกำเนิดไฟฟ้า</title>
+<style>
+  :root{
+    --bg-deep:#14181d;
+    --bg-panel:#1c2229;
+    --bg-panel-2:#232a33;
+    --line:#333d48;
+    --text-hi:#eef1f4;
+    --text-mid:#9aa7b4;
+    --text-dim:#5f6b78;
+    --amber:#e8912d;
+    --amber-dim:#8a5a1f;
+    --green:#4caf7d;
+    --red:#e5637a;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', 'Sarabun', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--text-hi);
+    font-family:var(--sans);
+    padding:32px 16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+  }
+  .head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  .btn-export{
+    margin-left:auto;
+    background:var(--bg-panel-2);
+    border:1px solid var(--amber-dim);
+    color:var(--amber);
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn-export:hover{
+    background:rgba(232,145,45,0.12);
+    border-color:var(--amber);
+  }
+  @media print{
+    @page{
+      margin:10mm;
+      size:auto;
+    }
+    body{
+      background:#fff;
+      color:#111;
+      padding:8px;
+      font-size:12px;
+    }
+    .credit-banner,
+    .head,
+    .req-list,
+    footer{
+      display:none !important;
+    }
+    .wrap{
+      max-width:100%;
+    }
+    .grid{
+      gap:8px;
+    }
+    .panel{
+      padding:10px 12px;
+      break-inside:avoid;
+      border:1px solid #ccc !important;
+      background:#fff !important;
+    }
+    .panel h2{
+      margin-bottom:8px;
+      font-size:10px;
+    }
+    .field{
+      margin-bottom:8px;
+    }
+    .field label{
+      font-size:10.5px;
+      margin-bottom:3px;
+    }
+    .field .hint{
+      display:none;
+    }
+    input{
+      padding:5px 7px;
+      font-size:11px;
+      background:#fff !important;
+      color:#111 !important;
+      border:1px solid #ccc !important;
+    }
+    .mode-toggle, .btn-add, .row-del{
+      display:none !important;
+    }
+    .curve-table{
+      font-size:11px;
+    }
+    .curve-table td{
+      padding:2px 4px 2px 0;
+    }
+    .chart-wrap{
+      display:none !important;
+    }
+    .results{
+      padding:12px 14px;
+      border:1px solid #ccc !important;
+      background:#fff !important;
+      break-inside:avoid;
+    }
+    .res-grid{
+      gap:10px;
+    }
+    .res-item .k{
+      font-size:9px;
+    }
+    .res-item .v, .res-item.highlight .v{
+      font-size:16px;
+      color:#111 !important;
+    }
+    .tag{
+      display:none;
+    }
+    .chart-wrap svg text{
+      fill:#111 !important;
+    }
+  }
+  .credit-banner{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--amber);
+    background:rgba(232,145,45,0.1);
+    border:1px solid var(--amber-dim);
+    border-radius:8px;
+    padding:16px 20px;
+    margin-bottom:24px;
+  }
+  .head h1{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    margin:0;
+  }
+  .head .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--amber);
+    background:rgba(232,145,45,0.1);
+    border:1px solid var(--amber-dim);
+    padding:2px 8px;
+    border-radius:3px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .sub{
+    color:var(--text-mid);
+    font-size:13px;
+    margin:0 0 20px 0;
+  }
+  .req-list{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber);
+    border-radius:6px;
+    padding:16px 20px;
+    margin-bottom:28px;
+  }
+  .req-list-title{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .req-list ul{
+    margin:0;
+    padding-left:18px;
+    color:var(--text-mid);
+    font-size:13px;
+    line-height:1.9;
+  }
+  .req-list li strong{
+    color:var(--text-hi);
+    font-weight:600;
+  }
+  .req-list .req-alt{
+    color:var(--text-dim);
+    font-size:12px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:720px){
+    .grid{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:20px;
+  }
+  .panel h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    color:var(--text-mid);
+    margin:0 0 16px 0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel h2::before{
+    content:"";
+    width:6px;height:6px;
+    background:var(--amber);
+    border-radius:1px;
+    display:inline-block;
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  .mode-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .mode-btn{
+    flex:1;
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    color:var(--text-mid);
+    font-family:var(--sans);
+    font-size:12.5px;
+    padding:9px 8px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .mode-btn:hover{
+    border-color:var(--amber-dim);
+    color:var(--text-hi);
+  }
+  .mode-btn.active{
+    background:rgba(232,145,45,0.12);
+    border-color:var(--amber);
+    color:var(--amber);
+    font-weight:600;
+  }
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--text-mid);
+    margin-bottom:6px;
+  }
+  .field .hint{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  input[type=number]{
+    width:100%;
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    color:var(--text-hi);
+    font-family:var(--mono);
+    font-size:14px;
+    padding:9px 10px;
+    border-radius:5px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input[type=number]:focus{
+    border-color:var(--amber);
+  }
+  input[type=number]::-webkit-inner-spin-button{opacity:0.4;}
+  .row3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+  }
+  .divider{
+    height:1px;
+    background:var(--line);
+    margin:18px 0;
+  }
+  /* fuel curve table */
+  .curve-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--mono);
+    font-size:13px;
+  }
+  .curve-table th{
+    text-align:left;
+    font-family:var(--sans);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    padding-bottom:8px;
+    font-weight:600;
+  }
+  .curve-table td{
+    padding:4px 6px 4px 0;
+    vertical-align:middle;
+  }
+  .curve-table input{
+    padding:6px 8px;
+    font-size:13px;
+  }
+  .row-del{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    width:28px;height:28px;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+  }
+  .row-del:hover{
+    border-color:var(--red);
+    color:var(--red);
+  }
+  .btn{
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    color:var(--text-mid);
+    font-family:var(--sans);
+    font-size:12.5px;
+    padding:8px 14px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn:hover{
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+  .btn-add{
+    margin-top:10px;
+    width:100%;
+  }
+  .chart-wrap{
+    margin-top:20px;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+  }
+  .chart-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--text-dim);
+    margin-bottom:12px;
+  }
+  #chartContainer{
+    width:100%;
+  }
+  #chartContainer svg{
+    width:100%;
+    height:auto;
+    display:block;
+  }
+  /* results */
+  .results{
+    grid-column:1 / -1;
+    background:linear-gradient(180deg, var(--bg-panel), var(--bg-panel-2));
+    border:1px solid var(--amber-dim);
+    border-radius:8px;
+    padding:22px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .results::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--amber), transparent);
+  }
+  .res-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:20px;
+  }
+  @media (max-width:720px){
+    .res-grid{grid-template-columns:repeat(2, 1fr);}
+  }
+  .res-item .k{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--text-mid);
+    margin-bottom:6px;
+  }
+  .res-item .v{
+    font-family:var(--mono);
+    font-size:24px;
+    font-weight:600;
+    color:var(--text-hi);
+  }
+  .res-item .v span{
+    font-size:13px;
+    color:var(--text-mid);
+    font-weight:400;
+    margin-left:4px;
+  }
+  .res-item.highlight .v{color:var(--amber);}
+  .warn{
+    margin-top:16px;
+    padding:10px 12px;
+    background:rgba(229,99,122,0.08);
+    border:1px solid rgba(229,99,122,0.3);
+    border-radius:5px;
+    color:var(--red);
+    font-size:12.5px;
+    display:none;
+  }
+  .warn.show{display:block;}
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:11px;
+    margin-top:20px;
+    font-family:var(--mono);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="credit-banner">จัดทำโดย ไพศาล มีสนธ์</div>
+
+  <div class="head">
+    <h1>Genset Fuel Calculator</h1>
+    <span class="tag">Diesel Generator</span>
+    <button class="btn btn-export" id="printBtn">🖨 พิมพ์ / บันทึก PDF</button>
+  </div>
+  <p class="sub">คำนวณ Load จริงจากค่าไฟฟ้าที่วัดได้ และประเมินระยะเวลาการใช้งานได้จากน้ำมันในถัง</p>
+
+  <div class="req-list">
+    <div class="req-list-title">ข้อมูลที่ต้องเตรียมก่อนใช้งาน</div>
+    <ul>
+      <li><strong>กระแสไฟฟ้า 3 เฟส (A)</strong> — วัดจากมิเตอร์ที่แผงควบคุมเครื่องกำเนิดไฟฟ้า (I L1, I L2, I L3) <span class="req-alt">หรือใช้ Actual Load (kW) โดยตรงถ้าทราบอยู่แล้ว</span></li>
+      <li><strong>แรงดันไฟฟ้าระหว่างเฟส (V line)</strong> — ปกติ 380–400V สำหรับระบบ 3 เฟส</li>
+      <li><strong>Power Factor (PF)</strong> — ดูจากมิเตอร์ หรือใช้ค่าเฉลี่ยของโหลดที่ใช้งานจริง</li>
+      <li><strong>ความจุถังน้ำมัน (ลิตร)</strong> — จากสเปคเครื่องหรือถังที่ติดตั้งจริง</li>
+      <li><strong>% สำรองน้ำมันก้นถัง</strong> — กำหนดตามนโยบายความปลอดภัยของหน่วยงาน (ปกติ 10–20%)</li>
+      <li><strong>ตาราง Fuel Consumption Curve</strong> — จาก Spec Sheet ของผู้ผลิตเครื่อง (Load เทียบ L/hr อย่างน้อย 3–4 จุด)</li>
+      <li><strong>Rated Power ของเครื่อง (kW)</strong> — ไม่บังคับ แต่ช่วยเตือนเมื่อ Load เกินพิกัด</li>
+    </ul>
+  </div>
+
+  <div class="grid">
+
+    <!-- Electrical Input -->
+    <div class="panel">
+      <h2>ค่า Load ที่ใช้คำนวณ</h2>
+
+      <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="electrical" id="modeElecBtn">คำนวณจากค่าไฟฟ้า</button>
+        <button class="mode-btn" data-mode="direct" id="modeDirectBtn">รู้ Actual Load อยู่แล้ว</button>
+      </div>
+
+      <div id="electricalFields">
+        <div class="field">
+          <label>กระแสไฟฟ้า 3 เฟส (A)</label>
+          <div class="row3">
+            <input type="number" id="iL1" value="145" step="0.1">
+            <input type="number" id="iL2" value="142" step="0.1">
+            <input type="number" id="iL3" value="148" step="0.1">
+          </div>
+          <div class="hint">I L1 · I L2 · I L3</div>
+        </div>
+        <div class="field">
+          <label>แรงดันไฟฟ้าระหว่างเฟส (V line)</label>
+          <input type="number" id="vLine" value="400" step="1">
+        </div>
+        <div class="field">
+          <label>Power Factor (PF)</label>
+          <input type="number" id="pf" value="0.8" step="0.01" min="0" max="1">
+        </div>
+      </div>
+
+      <div id="directField" style="display:none;">
+        <div class="field">
+          <label>Actual Load (kW)</label>
+          <input type="number" id="directLoad" value="99.23" step="0.01">
+          <div class="hint">กรอกค่า Load ที่วัดหรือทราบมาโดยตรง ไม่ต้องคำนวณจากกระแสไฟฟ้า</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tank config -->
+    <div class="panel">
+      <h2>ถังน้ำมันและเงื่อนไข</h2>
+      <div class="field">
+        <label>ความจุถังน้ำมัน (ลิตร)</label>
+        <input type="number" id="tankCap" value="900" step="1">
+      </div>
+      <div class="field">
+        <label>สำรองน้ำมันก้นถัง (%)</label>
+        <input type="number" id="reservePct" value="10" step="1" min="0" max="90">
+        <div class="hint">กันเครื่องดับกะทันหันเมื่อน้ำมันใกล้หมด</div>
+      </div>
+      <div class="field">
+        <label>Rated Power ของเครื่อง (kW) — ไม่บังคับ</label>
+        <input type="number" id="ratedPower" value="550" step="1">
+        <div class="hint">ใช้เตือนเมื่อ Load เกินพิกัดเครื่อง</div>
+      </div>
+    </div>
+
+    <!-- Fuel curve -->
+    <div class="panel" style="grid-column:1 / -1;">
+      <h2>ตาราง Fuel Consumption Curve (จากสเปคผู้ผลิต)</h2>
+      <table class="curve-table" id="curveTable">
+        <thead>
+          <tr>
+            <th style="width:40%">Load (kW)</th>
+            <th style="width:40%">Fuel (L/hr)</th>
+            <th style="width:20%"></th>
+          </tr>
+        </thead>
+        <tbody id="curveBody"></tbody>
+      </table>
+      <button class="btn btn-add" id="addRow">+ เพิ่มจุดข้อมูล</button>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Fuel Curve — Load (kW) vs Fuel Rate (L/hr)</div>
+        <div id="chartContainer"></div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results">
+      <div class="res-grid">
+        <div class="res-item">
+          <div class="k">Actual Load</div>
+          <div class="v" id="outLoad">–<span>kW</span></div>
+        </div>
+        <div class="res-item">
+          <div class="k">Fuel Rate</div>
+          <div class="v" id="outFuel">–<span>L/hr</span></div>
+        </div>
+        <div class="res-item">
+          <div class="k">การใช้น้ำมัน</div>
+          <div class="v" id="outPct">–<span>%/hr</span></div>
+        </div>
+        <div class="res-item highlight">
+          <div class="k">ใช้งานได้นาน</div>
+          <div class="v" id="outHours">–<span>ชม.</span></div>
+        </div>
+      </div>
+      <div class="warn" id="warnBox"></div>
+    </div>
+
+  </div>
+
+  <footer>คำนวณด้วยวิธี Linear Interpolation ระหว่างจุดข้อมูลในตาราง Fuel Curve</footer>
+</div>
+
+<script>
+const curveBody = document.getElementById('curveBody');
+
+const defaultCurve = [
+  [100, 33.4],
+  [200, 57.4],
+  [300, 79.8],
+  [400, 101.5]
+];
+
+function makeRow(load, fuel){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="number" class="curve-load" value="${load}" step="1"></td>
+    <td><input type="number" class="curve-fuel" value="${fuel}" step="0.1"></td>
+    <td><button class="row-del" title="ลบแถวนี้">✕</button></td>
+  `;
+  tr.querySelector('.row-del').addEventListener('click', () => {
+    tr.remove();
+    calculate();
+  });
+  tr.querySelectorAll('input').forEach(el => el.addEventListener('input', calculate));
+  return tr;
+}
+
+defaultCurve.forEach(([l,f]) => curveBody.appendChild(makeRow(l,f)));
+
+document.getElementById('addRow').addEventListener('click', () => {
+  curveBody.appendChild(makeRow('', ''));
+  calculate();
+});
+
+function getCurvePoints(){
+  const rows = curveBody.querySelectorAll('tr');
+  const pts = [];
+  rows.forEach(r => {
+    const l = parseFloat(r.querySelector('.curve-load').value);
+    const f = parseFloat(r.querySelector('.curve-fuel').value);
+    if(!isNaN(l) && !isNaN(f)) pts.push([l,f]);
+  });
+  pts.sort((a,b) => a[0]-b[0]);
+  return pts;
+}
+
+function interpolate(load, pts){
+  if(pts.length === 0) return null;
+  if(pts.length === 1) return pts[0][1];
+
+  if(load <= pts[0][0]){
+    const [x1,y1] = pts[0], [x2,y2] = pts[1];
+    return y1 + (load - x1) * (y2-y1)/(x2-x1);
+  }
+  if(load >= pts[pts.length-1][0]){
+    const [x1,y1] = pts[pts.length-2], [x2,y2] = pts[pts.length-1];
+    return y1 + (load - x1) * (y2-y1)/(x2-x1);
+  }
+  for(let i=0;i<pts.length-1;i++){
+    const [x1,y1] = pts[i], [x2,y2] = pts[i+1];
+    if(load >= x1 && load <= x2){
+      return y1 + (load - x1) * (y2-y1)/(x2-x1);
+    }
+  }
+  return null;
+}
+
+function fmt(n, d=2){
+  if(n === null || isNaN(n)) return '–';
+  return n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  window.print();
+});
+
+let inputMode = 'electrical';
+
+const modeElecBtn = document.getElementById('modeElecBtn');
+const modeDirectBtn = document.getElementById('modeDirectBtn');
+const electricalFields = document.getElementById('electricalFields');
+const directField = document.getElementById('directField');
+
+modeElecBtn.addEventListener('click', () => {
+  inputMode = 'electrical';
+  modeElecBtn.classList.add('active');
+  modeDirectBtn.classList.remove('active');
+  electricalFields.style.display = '';
+  directField.style.display = 'none';
+  calculate();
+});
+
+modeDirectBtn.addEventListener('click', () => {
+  inputMode = 'direct';
+  modeDirectBtn.classList.add('active');
+  modeElecBtn.classList.remove('active');
+  electricalFields.style.display = 'none';
+  directField.style.display = '';
+  calculate();
+});
+
+function calculate(){
+  let load;
+
+  if(inputMode === 'direct'){
+    load = parseFloat(document.getElementById('directLoad').value) || 0;
+  } else {
+    const iL1 = parseFloat(document.getElementById('iL1').value) || 0;
+    const iL2 = parseFloat(document.getElementById('iL2').value) || 0;
+    const iL3 = parseFloat(document.getElementById('iL3').value) || 0;
+    const vLine = parseFloat(document.getElementById('vLine').value) || 0;
+    const pf = parseFloat(document.getElementById('pf').value) || 0;
+    const iAvg = (iL1 + iL2 + iL3) / 3;
+    // 3-phase load: P = sqrt(3) * V_line * I_avg * PF / 1000 (kW)
+    load = Math.sqrt(3) * vLine * iAvg * pf / 1000;
+  }
+
+  const tankCap = parseFloat(document.getElementById('tankCap').value) || 0;
+  const reservePct = parseFloat(document.getElementById('reservePct').value) || 0;
+  const ratedPower = parseFloat(document.getElementById('ratedPower').value) || 0;
+
+  const pts = getCurvePoints();
+  const fuelRate = interpolate(load, pts);
+
+  const warnBox = document.getElementById('warnBox');
+  let warnMsg = '';
+
+  document.getElementById('outLoad').innerHTML = fmt(load,2) + '<span>kW</span>';
+
+  if(fuelRate === null){
+    document.getElementById('outFuel').innerHTML = '–<span>L/hr</span>';
+    document.getElementById('outPct').innerHTML = '–<span>%/hr</span>';
+    document.getElementById('outHours').innerHTML = '–<span>ชม.</span>';
+    warnBox.classList.remove('show');
+    drawChart(pts, load, null);
+    return;
+  }
+
+  const pctPerHour = tankCap > 0 ? (fuelRate / tankCap) * 100 : null;
+  const usableFuel = tankCap * (1 - reservePct/100);
+  const hours = fuelRate > 0 ? usableFuel / fuelRate : null;
+
+  document.getElementById('outFuel').innerHTML = fmt(fuelRate,2) + '<span>L/hr</span>';
+  document.getElementById('outPct').innerHTML = fmt(pctPerHour,2) + '<span>%/hr</span>';
+  document.getElementById('outHours').innerHTML = fmt(hours,2) + '<span>ชม.</span>';
+
+  if(ratedPower > 0 && load > ratedPower){
+    warnMsg = `⚠ Load (${fmt(load,1)} kW) เกิน Rated Power ของเครื่อง (${fmt(ratedPower,1)} kW) — ตรวจสอบภาระโหลดก่อนเดินเครื่องต่อเนื่อง`;
+  } else if(pts.length > 0 && (load < pts[0][0] || load > pts[pts.length-1][0])){
+    warnMsg = `⚠ Load อยู่นอกช่วงข้อมูลในตาราง Fuel Curve (${pts[0][0]}–${pts[pts.length-1][0]} kW) — ค่าที่คำนวณเป็นการประมาณนอกช่วง (extrapolation) ความแม่นยำอาจลดลง`;
+  }
+
+  if(warnMsg){
+    warnBox.textContent = warnMsg;
+    warnBox.classList.add('show');
+  } else {
+    warnBox.classList.remove('show');
+  }
+
+  drawChart(pts, load, fuelRate);
+}
+
+function drawChart(pts, currentLoad, currentFuel){
+  const container = document.getElementById('chartContainer');
+  if(pts.length < 2){
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center;">ต้องมีอย่างน้อย 2 จุดข้อมูลเพื่อวาดกราฟ</div>';
+    return;
+  }
+
+  const W = 700, H = 300;
+  const padL = 55, padR = 30, padT = 20, padB = 40;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const loads = pts.map(p => p[0]);
+  const fuels = pts.map(p => p[1]);
+
+  let minX = Math.min(...loads, isFinite(currentLoad) ? currentLoad : Infinity);
+  let maxX = Math.max(...loads, isFinite(currentLoad) ? currentLoad : -Infinity);
+  let minY = 0;
+  let maxY = Math.max(...fuels, isFinite(currentFuel) ? currentFuel : -Infinity);
+
+  const xPad = (maxX - minX) * 0.08 || 10;
+  minX -= xPad; maxX += xPad;
+  maxY *= 1.15;
+  if(maxY <= 0) maxY = 10;
+
+  const xScale = v => padL + ((v - minX) / (maxX - minX)) * plotW;
+  const yScale = v => padT + plotH - ((v - minY) / (maxY - minY)) * plotH;
+
+  // grid lines (5 horizontal)
+  let gridLines = '';
+  let gridLabels = '';
+  const steps = 5;
+  for(let i=0;i<=steps;i++){
+    const yVal = minY + (maxY-minY) * i/steps;
+    const y = yScale(yVal);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#333d48" stroke-width="1" />`;
+    gridLabels += `<text x="${padL-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#9aa7b4" font-family="monospace">${yVal.toFixed(0)}</text>`;
+  }
+
+  // x axis labels at each data point
+  let xLabels = '';
+  loads.forEach(l => {
+    xLabels += `<text x="${xScale(l)}" y="${H-padB+18}" text-anchor="middle" font-size="11" fill="#9aa7b4" font-family="monospace">${l}</text>`;
+  });
+
+  // curve line
+  const linePoints = pts.map(p => `${xScale(p[0])},${yScale(p[1])}`).join(' ');
+
+  // data point dots
+  let dots = '';
+  pts.forEach(p => {
+    dots += `<circle cx="${xScale(p[0])}" cy="${yScale(p[1])}" r="4" fill="#232a33" stroke="#e8912d" stroke-width="2" />`;
+  });
+
+  // current load marker
+  let currentMarker = '';
+  if(isFinite(currentLoad) && isFinite(currentFuel) && currentFuel !== null){
+    const cx = xScale(currentLoad);
+    const cy = yScale(currentFuel);
+    currentMarker = `
+      <line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT+plotH}" stroke="#e5637a" stroke-width="1" stroke-dasharray="4,3" />
+      <circle cx="${cx}" cy="${cy}" r="6" fill="#e5637a" stroke="#14181d" stroke-width="2" />
+      <text x="${cx}" y="${cy-14}" text-anchor="middle" font-size="11" font-weight="700" fill="#e5637a" font-family="monospace">${currentLoad.toFixed(1)} kW</text>
+    `;
+  }
+
+  const svg = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      ${gridLines}
+      ${gridLabels}
+      ${xLabels}
+      <text x="${W/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="#5f6b78" font-family="sans-serif">Load (kW)</text>
+      <polyline points="${linePoints}" fill="none" stroke="#e8912d" stroke-width="2.5" />
+      ${dots}
+      ${currentMarker}
+    </svg>
+  `;
+
+  container.innerHTML = svg;
+}
+
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', calculate));
+calculate();
+</script>
+</body>
+</html>
