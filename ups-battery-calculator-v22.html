@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPS Battery Sizing Calculator v2.2 — Constant Power Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-alt:#EDF1F6;
+    --ink:#16202C; --ink-muted:#5B6675; --ink-faint:#8A93A1;
+    --navy:#1D3A5F; --navy-deep:#0F2540; --navy-tint:#E8EFF6;
+    --amber:#DE9A3C; --amber-tint:#FBF1DE;
+    --green:#2F9E63; --green-tint:#E4F5EC;
+    --red:#D64545; --red-tint:#FBE7E7;
+    --border:#DFE4EA; --radius:10px;
+    --disp:"Space Grotesk","Inter",sans-serif;
+    --body:"Inter","Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono","Consolas",monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;}
+  ::selection{background:var(--amber-tint);}
+
+  .topbar{background:var(--navy-deep);color:#fff;padding:22px clamp(16px,4vw,48px);
+    display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    border-bottom:3px solid var(--amber);}
+  .topbar h1{font-family:var(--disp);font-size:22px;font-weight:700;margin:0;letter-spacing:.2px;}
+  .topbar .tag{font-family:var(--mono);font-size:12px;color:#B9C6D6;letter-spacing:.5px;}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:28px clamp(16px,4vw,48px) 80px;
+    display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
+  @media (max-width:980px){.wrap{grid-template-columns:1fr;} .summary{position:static !important;order:-1;}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px clamp(16px,3vw,26px);margin-bottom:20px;}
+  .card h2{font-family:var(--disp);font-size:17px;font-weight:600;color:var(--navy);margin:0 0 4px;
+    display:flex;align-items:center;gap:10px;}
+  .card h2 .n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+    border-radius:6px;background:var(--navy);color:#fff;font-family:var(--mono);font-size:12px;flex:none;}
+  .card .sub{font-size:13px;color:var(--ink-muted);margin:0 0 18px;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 16px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:12.5px;font-weight:600;color:var(--ink-muted);display:flex;justify-content:space-between;gap:6px;}
+  .field label .unit{font-weight:400;color:var(--ink-faint);font-family:var(--mono);}
+  .field input,.field select{font-family:var(--mono);font-size:14.5px;padding:9px 10px;
+    border:1px solid var(--border);border-radius:7px;background:var(--surface-alt);color:var(--ink);width:100%;}
+  .field input::placeholder{font-family:var(--body);color:var(--ink-faint);font-size:13px;}
+  .field input:focus,.field select:focus{outline:2px solid var(--navy);outline-offset:1px;background:#fff;}
+
+  button.ghost{background:#fff;border:1px solid var(--navy);color:var(--navy);border-radius:6px;
+    font-family:var(--body);font-weight:600;cursor:pointer;}
+  button.ghost:hover{background:var(--navy-tint);}
+
+  .divider{height:1px;background:var(--border);margin:18px 0;border:none;}
+
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;}
+  .stat{background:var(--navy-tint);border-radius:8px;padding:12px 14px;}
+  .stat.hi{background:var(--navy);}
+  .stat.hi .k{color:#B9C6D6;} .stat.hi .v{color:#fff;} .stat.hi .v small{color:#B9C6D6;}
+  .stat.ok{background:var(--green-tint);border:1px solid #B6E2CA;}
+  .stat.ok .k{color:#1E6B42;} .stat.ok .v{color:#1E6B42;}
+  .stat.bad{background:var(--red-tint);border:1px solid #F0C2C2;}
+  .stat.bad .k{color:#8E2C2C;} .stat.bad .v{color:#8E2C2C;}
+  .stat .k{font-size:11.5px;color:var(--navy);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  .stat .v{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--navy-deep);margin-top:2px;}
+  .stat .v small{font-size:12px;font-weight:500;color:var(--ink-muted);}
+
+  .note{background:var(--amber-tint);border-left:3px solid var(--amber);border-radius:0 6px 6px 0;
+    padding:10px 14px;font-size:13px;color:#7A560F;margin-top:14px;}
+  .note.warn{background:var(--red-tint);border-left-color:var(--red);color:#8E2C2C;}
+  .note.good{background:var(--green-tint);border-left-color:var(--green);color:#1E6B42;}
+  .note.info{background:var(--navy-tint);border-left-color:var(--navy);color:#1D3A5F;}
+
+  .summary{position:sticky;top:20px;display:flex;flex-direction:column;gap:16px;}
+  .summary .card{margin-bottom:0;}
+  .ladder-wrap{display:flex;gap:14px;}
+  .ladder{width:34px;height:280px;display:flex;flex-direction:column;border-radius:6px;overflow:hidden;
+    border:1px solid var(--border);flex:none;}
+  .ladder .seg{flex:1 1 auto;}
+  .ladder .seg.bench-a{background:#3D6EA5;}
+  .ladder .seg.bench-b{background:#D9773F;}
+  .ladder .seg.tap{background:var(--navy-deep);flex:none;height:3px;}
+  .ladder-legend{font-size:12.5px;color:var(--ink-muted);display:flex;flex-direction:column;gap:10px;justify-content:center;}
+  .ladder-legend .li{display:flex;align-items:center;gap:8px;}
+  .ladder-legend .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .ladder-legend b{color:var(--ink);font-family:var(--mono);}
+
+  .tool{background:var(--surface-alt);border:1px dashed var(--border);border-radius:8px;padding:14px 16px;margin:14px 0;}
+  .tool-title{font-size:13px;color:var(--ink-muted);margin:0 0 10px;}
+  .tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px 12px;margin-bottom:12px;}
+  .tool-grid .field label{font-size:11.5px;}
+  .tool-grid input{font-family:var(--mono);font-size:13.5px;padding:7px 9px;border:1px solid var(--border);
+    border-radius:6px;background:#fff;width:100%;}
+  .tool-result{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13.5px;}
+  .tool-result b{font-family:var(--mono);color:var(--navy);font-size:15px;}
+
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;
+    border-bottom:1px dashed var(--border);gap:12px;}
+  .kv:last-child{border-bottom:none;}
+  .kv b{font-family:var(--mono);color:var(--ink);text-align:right;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#fff;
+    background:var(--navy);padding:8px 9px;font-weight:600;}
+  th:first-child{border-radius:6px 0 0 0;} th:last-child{border-radius:0 6px 0 0;}
+  td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:middle;font-family:var(--mono);}
+  tr:last-child td{border-bottom:none;}
+  tr.base td{font-weight:600;background:var(--navy-tint);font-family:var(--body);}
+  .delta-up{color:var(--red);} .delta-down{color:var(--green);}
+
+  footer{text-align:center;font-size:12px;color:var(--ink-faint);padding:20px;font-family:var(--mono);}
+
+  .effect-list{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .effect-row{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;}
+  .effect-row .arrow{font-family:var(--mono);font-weight:700;flex:none;width:22px;text-align:center;}
+  .effect-row .arrow.up{color:var(--red);} .effect-row .arrow.down{color:var(--green);}
+  .effect-row b{color:var(--navy);}
+
+  .banner{background:var(--navy-deep);color:#DCE6F2;border-radius:var(--radius);padding:16px 20px;
+    margin-bottom:20px;font-size:13.5px;line-height:1.6;border-left:4px solid var(--amber);}
+  .banner b{color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>UPS Battery Sizing Calculator</h1>
+  <div class="tag">v2.2 · CONSTANT POWER · FEASIBILITY CHECKS</div>
+</div>
+
+<div class="wrap">
+  <div>
+
+    <div class="banner">
+      <b>เครื่องมือนี้ไม่ใช้ Peukert's Law</b> — Peukert ออกแบบมาสำหรับการคายประจุแบบ <b>กระแสคงที่</b>
+      แต่โหลด UPS ผ่าน Inverter เป็น <b>กำลังคงที่ (Constant Power)</b> ซึ่งกระแสไต่ขึ้นเรื่อยๆ ขณะแรงดันตก
+      การนำมาปนกันทำให้ผลลัพธ์ผิดทิศ<br><br>
+      วิธีที่ใช้ที่นี่คือ <b>Constant Power (W/cell) เทียบกับตาราง Discharge ของผู้ผลิตโดยตรง</b> —
+      ตัวเลขทุกตัวเป็น <b>ค่าดิบ ไม่มีตัวคูณเผื่อใดๆ</b> ทั้งสิ้น
+    </div>
+
+    <!-- SECTION 1 -->
+    <div class="card">
+      <h2><span class="n">1</span>โครงสร้าง String แบตเตอรี่</h2>
+      <p class="sub">เริ่มจาก <b>จำนวนก้อน/เซลล์ที่เครื่อง UPS รองรับ</b> (ตามสเปกเครื่อง) แล้วระบบคำนวณ DC Bus ให้</p>
+      <div class="grid">
+        <div class="field">
+          <label>ชนิดแบตเตอรี่</label>
+          <select id="battType">
+            <option value="6">ก้อน 12V (6 cells/ก้อน)</option>
+            <option value="3">ก้อน 6V (3 cells/ก้อน)</option>
+            <option value="1">Cell เดี่ยว 2V (1 cell)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>จำนวนก้อน/เซลล์ ต่อ 1 String <span class="unit">units</span></label>
+          <input type="number" id="numUnits" placeholder="เช่น 40" min="1" step="1">
+        </div>
+        <div class="field">
+          <label>จำนวน String ขนาน <span class="unit">strings</span></label>
+          <input type="number" id="numStrings" placeholder="เช่น 1" min="1" step="1">
+        </div>
+        <div class="field">
+          <label>รูปแบบการต่อสาย</label>
+          <select id="splitMode">
+            <option value="none">มีหม้อแปลง — สายเดียว (2 สาย)</option>
+            <option value="split" selected>ไม่มีหม้อแปลง — With Neutral (3 สาย)</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="results" id="sysResults"></div>
+      <div class="note" id="sysNote"></div>
+      <div class="note warn" id="sysWarn" style="display:none;"></div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="card" style="border:1.5px solid var(--navy);">
+      <h2><span class="n">2</span>โหลดและเป้าหมาย <span style="font-size:12px;font-weight:400;color:var(--ink-faint);font-family:var(--body)">— กรอกที่นี่ที่เดียว</span></h2>
+      <p class="sub">ทุกช่องนี้ป้อนผลไปทุกข้อด้านล่างพร้อมกัน ไม่มีการกรอกซ้ำ</p>
+      <div class="grid">
+        <div class="field">
+          <label>Total UPS Load <span class="unit">kVA</span></label>
+          <input type="number" id="loadKva" placeholder="เช่น 10" step="0.1">
+        </div>
+        <div class="field">
+          <label>Power Factor <span class="unit">lagging</span></label>
+          <input type="number" id="pf" placeholder="เช่น 0.9" step="0.01">
+        </div>
+        <div class="field">
+          <label>Inverter Efficiency <span class="unit">%</span></label>
+          <input type="number" id="invEff" placeholder="เช่น 96.4" step="0.1">
+        </div>
+        <div class="field">
+          <label>Backup Time ที่ต้องการ <span class="unit">นาที</span></label>
+          <input type="number" id="targetMin" placeholder="เช่น 30" step="1">
+        </div>
+        <div class="field">
+          <label>Cutoff / EOD Voltage <span class="unit">V/cell</span></label>
+          <input type="number" id="cutoffVcell" placeholder="เช่น 1.70" step="0.01">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="results" id="loadResults"></div>
+      <div class="note info"><b>Cutoff ใช้ทำอะไรบ้าง:</b> ① เลือก<b>แถว</b>ในตาราง Constant Power ของ Datasheet ② คำนวณ<b>กระแสสูงสุด</b>เพื่อ sizing สายไฟ/ฟิวส์/เบรกเกอร์ — <b>ไม่</b>ถูกนำไปคำนวณ Backup Time จึงไม่มีปัญหาผลลัพธ์กลับด้าน</div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="card" style="border:1.5px solid var(--navy);">
+      <h2><span class="n">3</span>ค่าหลัก: W/cell <span style="font-size:12px;font-weight:400;color:var(--green);font-family:var(--body)">★ ตัวตัดสิน</span></h2>
+      <p class="sub">ค่าที่ใช้เปิดตาราง <b>Constant Power Discharge (W/cell)</b> ของผู้ผลิต — วิธีมาตรฐานสากลสำหรับงาน UPS</p>
+      <div class="results" id="wcellResults"></div>
+      <div class="note info">
+        <b>สูตร:</b> P<sub>dc</sub> = kVA × PF ÷ (Eff/100) &nbsp;→&nbsp; <b>W/cell = P<sub>dc</sub> ÷ (cells × strings)</b><br>
+        ค่านี้ <b>ไม่ขึ้นกับ Cutoff และไม่ขึ้นกับ Ah</b> — เป็นความต้องการล้วนๆ ไม่มีสมมติฐานเรื่องแบตเลย จึงเชื่อได้เต็มร้อย
+      </div>
+      <div class="note warn" id="feasWarn" style="display:none;"></div>
+      <div class="note warn">
+        ⚠️ <b>ค่านี้เป็นค่าดิบ ไม่มีตัวคูณเผื่อ</b> — เมื่อไปเทียบกับ Datasheet ตัวเลขในตารางเป็นสเปกของ <b>แบตใหม่ที่ 25°C</b>
+        ในการใช้งานจริง ความจุจะลดลงตามอายุ (ปลายอายุเหลือ ~80%) และตามอุณหภูมิห้องที่ต่ำกว่า 25°C
+        → ควรเผื่อ <b>headroom</b> ในข้อ 4 ไว้เอง แทนที่จะพึ่งตัวคูณอัตโนมัติ
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="card">
+      <h2><span class="n">4</span>เช็ครุ่นแบตกับ Datasheet <span style="font-size:12px;font-weight:400;color:var(--ink-faint);font-family:var(--body)">— ผ่าน/ไม่ผ่าน</span></h2>
+      <p class="sub">เปิดตาราง <b>Constant Power Discharge (W/cell)</b> ของรุ่นที่เล็งไว้ → หา<b>แถว</b> Cutoff ตรงกับข้อ 2 และ<b>คอลัมน์</b>เวลาตรงกับ Backup Time → เอาตัวเลขนั้นมากรอก</p>
+      <div class="grid">
+        <div class="field">
+          <label>รุ่น / ขนาดที่เล็งไว้</label>
+          <input type="text" id="candName" placeholder="เช่น XYZ 12V 65Ah" style="font-family:var(--body)">
+        </div>
+        <div class="field">
+          <label>W/cell จาก Datasheet <span class="unit">W/cell</span></label>
+          <input type="number" id="candWcell" placeholder="ค่าจากตาราง" step="0.1">
+        </div>
+        <div class="field">
+          <label>หรือกรอก W/block <span class="unit">แปลงให้อัตโนมัติ</span></label>
+          <input type="number" id="candWblock" placeholder="ถ้า Datasheet ให้เป็น W/block" step="0.1">
+        </div>
+      </div>
+      <div class="results" id="checkResults"></div>
+      <div class="note" id="checkVerdict">กรอก W/cell (หรือ W/block) จาก Datasheet เพื่อตรวจสอบ</div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="card">
+      <h2><span class="n">5</span>ประมาณ Ah <span style="font-size:12px;font-weight:400;color:var(--red);font-family:var(--body)">— ตัวช่วยเดารุ่น ไม่ใช่ตัวตัดสิน</span></h2>
+      <p class="sub">มีไว้เพราะ<b>สั่งซื้อแบตด้วย W/cell ไม่ได้</b> — แคตตาล็อกพูดกันด้วย "12V 65Ah" ข้อนี้จึงบอกว่า<b>ควรไปหยิบ Datasheet รุ่นไหนมาเปิด</b> แล้วเอา W/cell จากตารางไปกรอกข้อ 4 เพื่อตัดสินจริง</p>
+
+      <div class="grid">
+        <div class="field">
+          <label>แรงดันเฉลี่ยตลอดช่วงคาย <span class="unit">V/cell</span></label>
+          <input type="number" id="vAvg" value="1.90" step="0.01">
+          <span id="vAvgHint" style="font-size:11.5px;color:var(--ink-faint);cursor:pointer;text-decoration:underline;" onclick="applyVAvg()"></span>
+        </div>
+        <div class="field">
+          <label>Capacity available factor (f) <span class="unit">0-1</span></label>
+          <input type="number" id="capFactor" placeholder="เช่น 0.55" step="0.01">
+        </div>
+        <div class="field">
+          <label>Rated ที่ <span class="unit">บันทึกไว้เฉยๆ</span></label>
+          <input type="text" id="ratedLabel" placeholder="เช่น C10 / C20" style="font-family:var(--body)">
+        </div>
+      </div>
+
+      <div class="tool">
+        <p class="tool-title">🔍 หาค่า <b>f</b> จาก Datasheet — เปิดตาราง <b>Constant Current Discharge (A)</b> ที่แถว Cutoff เดียวกัน คอลัมน์เวลาเดียวกับเป้าหมาย</p>
+        <div class="tool-grid">
+          <div class="field"><label>Rated Ah บนป้าย <span class="unit">Ah</span></label><input type="number" id="ff_rated" placeholder="เช่น 65" step="0.1"></div>
+          <div class="field"><label>กระแสจากตาราง <span class="unit">A</span></label><input type="number" id="ff_amp" placeholder="เช่น 72" step="0.1"></div>
+          <div class="field"><label>ที่เวลา <span class="unit">นาที</span></label><input type="number" id="ff_min" placeholder="เช่น 30" step="1"></div>
+        </div>
+        <div class="tool-result">
+          <span>f ที่คำนวณได้: <b id="ff_result">—</b> <span style="color:var(--ink-faint);font-size:12px">(f = A × t<sub>ชม.</sub> ÷ Rated Ah)</span></span>
+          <button class="ghost" style="padding:6px 14px;font-size:12.5px;" onclick="applyF()">ใช้ค่านี้ ↑</button>
+        </div>
+      </div>
+      <div class="note">ยังไม่มี Datasheet? ใช้ค่ากลางของ VRLA ไปก่อน (เทียบ C10): <b>5 นาที ≈ 0.28 · 10 นาที ≈ 0.38 · 15 นาที ≈ 0.45 · 30 นาที ≈ 0.55 · 1 ชม. ≈ 0.68 · 3 ชม. ≈ 0.85 · 10 ชม. = 1.00</b> — ต้องแทนด้วยค่าจริงจากผู้ผลิตก่อนส่งงาน</div>
+
+      <hr class="divider">
+      <div class="results" id="ahResults"></div>
+      <table style="margin-top:14px;">
+        <thead><tr><th style="width:34%">สูตร</th><th>แทนค่าจริง</th><th style="width:16%">ผลลัพธ์</th></tr></thead>
+        <tbody id="ahStepsBody"></tbody>
+      </table>
+      <div class="note warn">⚠️ Ah บนป้ายวัดที่ C10/C20 (คายช้า) ไม่ใช่อัตราคายสั้นๆ ที่ใช้จริง ตัวเลขนี้จึงเป็นแค่<b>จุดเริ่มต้นในการเดารุ่น</b> — <b>คำตัดสินจริงอยู่ที่ข้อ 4 (W/cell) เท่านั้น</b></div>
+      <div class="note info">📐 <b>ทำไมสองวิธีนี้ไม่ขัดกัน:</b> แทนค่าย้อนกลับจะเห็นว่า Ah ที่ได้จากข้อนี้ ให้ W/cell ออกมาเท่ากับข้อ 3 พอดีเป๊ะ — สองวิธีเป็นสมการเดียวกันที่จัดรูปคนละแบบ ความแม่นยำจึงขึ้นกับ <b>f</b> และ <b>V เฉลี่ย</b> ล้วนๆ ถ้าสองค่านั้นมาจาก Datasheet จริง ตัวเลข Ah ก็เชื่อได้</div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="card">
+      <h2><span class="n">✓</span>Recheck: อะไรทำให้ W/cell ที่ต้องการเปลี่ยน</h2>
+      <p class="sub">Recheck ที่ <b>W/cell</b> ไม่ใช่ Backup Time — เพราะ W/cell ไม่มีสมมติฐานเรื่องแบต ตัวเลขจึงเชื่อได้ทุกแถว (ยิ่งต่ำ = ยิ่งหาแบตง่าย)</p>
+      <table>
+        <thead><tr><th>สถานการณ์</th><th>W/cell ที่ต้องการ</th><th>เปลี่ยนแปลง</th></tr></thead>
+        <tbody id="whatIfBody"></tbody>
+      </table>
+
+      <div class="divider"></div>
+      <div class="effect-list">
+        <div class="effect-row"><span class="arrow up">↑</span><span>โหลด (kVA) หรือ <b>PF เพิ่ม</b> → P<sub>dc</sub> สูงขึ้น → ต้องการ W/cell <b>มากขึ้น</b> (หาแบตยากขึ้น)</span></div>
+        <div class="effect-row"><span class="arrow down">↓</span><span><b>Inverter Efficiency เพิ่ม</b> → P<sub>dc</sub> ลดลง → ต้องการ W/cell <b>น้อยลง</b> (ผลน้อย เพราะ Eff เปลี่ยนแค่ 2-5%)</span></div>
+        <div class="effect-row"><span class="arrow down">↓</span><span><b>เพิ่มจำนวน Cell</b> (DC Bus สูงขึ้น) → กำลังกระจายไปหลายเซลล์ → W/cell <b>ลดลงเป็นสัดส่วนตรง</b></span></div>
+        <div class="effect-row"><span class="arrow down">↓</span><span><b>เพิ่ม String ขนาน</b> → W/cell <b>ลดลงครึ่งหนึ่งเมื่อเพิ่ม 1→2</b> (แรงที่สุด) แต่ไม่ควรเกิน 4 strings เพราะกระแสไหลวนและก้อนเสียลาก String ทั้งเส้น</span></div>
+        <div class="effect-row"><span class="arrow down">↓</span><span><b>Cutoff ต่ำลง</b> (1.75 → 1.60) → <b>ไม่เปลี่ยน W/cell ที่ต้องการ</b> แต่ค่าใน Datasheet ที่แถวนั้น<b>สูงขึ้น</b> → ผ่านง่ายขึ้น (แลกกับอายุแบตสั้นลง)</span></div>
+        <div class="effect-row"><span class="arrow up">↑</span><span><b>Backup Time นานขึ้น</b> → <b>ไม่เปลี่ยน W/cell ที่ต้องการ</b> แต่ค่าใน Datasheet ที่คอลัมน์นั้น<b>ต่ำลง</b> → ผ่านยากขึ้น ต้องขยับรุ่นใหญ่</span></div>
+      </div>
+      <div class="note info"><b>สังเกต:</b> Cutoff และ Backup Time <b>ไม่ปรากฏในตารางด้านบน</b> — เพราะไม่ได้เปลี่ยน "ความต้องการ" แต่เปลี่ยน "ช่องที่ไปเปิดใน Datasheet" คนละเรื่องกัน นี่คือจุดที่โมเดล Peukert เดิมสับสนจนให้ผลกลับด้าน</div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="summary">
+    <div class="card">
+      <h2 style="margin-bottom:14px;">โครงสร้างสาย (Live)</h2>
+      <div class="ladder-wrap">
+        <div class="ladder" id="ladder"></div>
+        <div class="ladder-legend" id="ladderLegend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin-bottom:10px;">สรุปค่าสำคัญ</h2>
+      <div id="finalSummary"></div>
+    </div>
+  </div>
+</div>
+
+<footer>UPS Battery Sizing Calculator v2.2 — Constant Power · ค่าดิบไม่มีตัวคูณเผื่อ · ตัวตัดสินคือ W/cell เทียบตาราง Discharge ของผู้ผลิตเสมอ</footer>
+
+<script>
+/* ---------- helpers ---------- */
+function num(id){const e=document.getElementById(id);if(!e)return 0;const v=parseFloat(e.value);return isNaN(v)?0:v;}
+function txt(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function fmt(n,d=2){if(!isFinite(n))return "—";return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function pos(n,d=2){return (!isFinite(n)||n<=0)?"—":fmt(n,d);}
+function stat(k,v,s,c){return '<div class="stat'+(c?' '+c:'')+'"><div class="k">'+k+'</div><div class="v">'+v+(s?' <small>'+s+'</small>':'')+'</div></div>';}
+
+const STD_AH=[7,9,12,17,18,26,33,38,42,45,55,65,75,80,100,120,150,180,200,250];
+function nextStd(a){if(!(a>0))return 0;for(const s of STD_AH)if(s>=a)return s;return Math.ceil(a/50)*50;}
+
+const NOM_VCELL=2.0;
+
+/* ---------- read ---------- */
+function read(){
+  const cellsPerUnit=parseInt(document.getElementById('battType').value,10);
+  const units  =Math.max(0,Math.round(num('numUnits')));
+  const strings=Math.max(1,Math.round(num('numStrings'))||1);
+  const split  =document.getElementById('splitMode').value==='split';
+  const cells  =units*cellsPerUnit;
+  const dcBus  =cells*NOM_VCELL;
+  return {cellsPerUnit,units,strings,split,cells,dcBus,
+    kva:num('loadKva'),pf:num('pf'),eff:num('invEff'),
+    tMin:num('targetMin'),cutoff:num('cutoffVcell'),
+    vAvg:num('vAvg'),f:num('capFactor')};
+}
+
+/* ---------- core: no Peukert, no margins ---------- */
+function core(i){
+  const effF=i.eff>0?i.eff/100:0;
+  const pAc =i.kva*i.pf;
+  const pDc =effF>0?pAc/effF:0;
+  const P   =pDc*1000;
+
+  // PRIMARY — raw requirement, no correction factors
+  const wCell =(i.cells>0)?P/(i.cells*i.strings):0;
+  const wBlock=wCell*i.cellsPerUnit;
+
+  // cutoff → wiring/fuse only
+  const vCutoff=i.cutoff*i.cells;
+  const iMax   =(vCutoff>0)?P/(vCutoff*i.strings):0;
+  const vAvgTot=i.vAvg*i.cells;
+  const iAvg   =(vAvgTot>0)?P/(vAvgTot*i.strings):0;
+
+  // SECONDARY — rough Ah from energy at average voltage
+  const tH     =i.tMin/60;
+  const ahOut  =iAvg*tH;
+  const ahRated=(i.f>0)?ahOut/i.f:0;
+  const ahStd  =nextStd(ahRated);
+
+  return {pAc,pDc,P,wCell,wBlock,vCutoff,iMax,vAvgTot,iAvg,tH,ahOut,ahRated,ahStd};
+}
+
+// Average discharge voltage is NOT a constant 1.90 — it drops as the rate gets harder.
+// Heuristic: start from cutoff, add a gap that shrinks with faster discharge.
+function suggestVAvg(cutoff,tMin){
+  if(!(cutoff>0)||!(tMin>0)) return 0;
+  let gap;
+  if(tMin<=5)        gap=0.12;
+  else if(tMin<=10)  gap=0.15;
+  else if(tMin<=20)  gap=0.18;
+  else if(tMin<=45)  gap=0.20;
+  else if(tMin<=180) gap=0.23;
+  else               gap=0.26;
+  return Math.min(1.98, cutoff+gap);
+}
+function applyVAvg(){
+  const i=read();
+  const v=suggestVAvg(i.cutoff,i.tMin);
+  if(v>0){ document.getElementById('vAvg').value=v.toFixed(2); renderAll(); }
+}
+function renderVAvgHint(i){
+  const el=document.getElementById('vAvgHint');
+  const v=suggestVAvg(i.cutoff,i.tMin);
+  if(!(v>0)){ el.textContent=''; return; }
+  const cur=num('vAvg');
+  el.textContent = Math.abs(cur-v)<0.005
+    ? '✓ ตรงกับค่าแนะนำที่ '+fmt(v,2)+' V/cell'
+    : '💡 แนะนำ '+fmt(v,2)+' V/cell — กดเพื่อใช้';
+}
+
+// Reality check: is this even buildable with real batteries?
+function renderFeas(i,r){
+  const el=document.getElementById('feasWarn');
+  const msgs=[];
+  const uv=i.cellsPerUnit*NOM_VCELL;
+
+  if(r.wBlock>0 && i.cellsPerUnit===6){
+    if(r.wBlock>1400){
+      msgs.push('❌ ต้องการ <b>'+fmt(r.wBlock,0)+' W ต่อก้อน 12V</b> — <b>เกินวิสัยของแบต 12V ทุกรุ่นในตลาด</b> (ก้อน 12V ตัวใหญ่สุด ~200Ah ให้ได้ราว 1,200-1,400 W ที่ 30 นาที) → ต้องเพิ่ม String ขนาน, เพิ่มจำนวนก้อนต่อ String, หรือเปลี่ยนไปใช้ <b>Cell 2V</b>');
+    } else if(r.wBlock>800){
+      msgs.push('⚠️ ต้องการ <b>'+fmt(r.wBlock,0)+' W ต่อก้อน 12V</b> — ต้องใช้ก้อนขนาดใหญ่มาก (ราว 150-200Ah, หนัก 50-60 กก./ก้อน) พิจารณาเพิ่ม String ขนานเพื่อลดขนาดก้อน');
+    }
+  }
+  if(r.iMax>150){
+    msgs.push('⚠️ กระแสสูงสุด <b>'+fmt(r.iMax,0)+' A ต่อ String</b> — สูงมาก ต้องใช้สาย/ฟิวส์/เบรกเกอร์ขนาดใหญ่และคุมแรงดันตกในสายให้ดี พิจารณาเพิ่ม String ขนานเพื่อแบ่งกระแส');
+  } else if(r.iMax>100){
+    msgs.push('💡 กระแสสูงสุด <b>'+fmt(r.iMax,0)+' A ต่อ String</b> — ควรตรวจ voltage drop ในสาย DC และขนาดฟิวส์อย่างระมัดระวัง');
+  }
+  if(i.strings>4){
+    msgs.push('⚠️ <b>'+i.strings+' strings ขนาน</b> — เกิน 4 strings ไม่แนะนำ เพราะกระแสไหลวนระหว่าง String และก้อนเสียก้อนเดียวลาก String ทั้งเส้นลง ควรใช้ก้อนใหญ่ขึ้นแทน');
+  }
+  if(i.tMin>0 && i.tMin<10 && r.wCell>0){
+    msgs.push('💡 Backup <b>'+fmt(i.tMin,0)+' นาที</b> ถือเป็นอัตราคายสูงมาก — ต้องใช้แบต <b>High-Rate (HR/UPS series)</b> เท่านั้น แบต General-purpose ที่ Ah เท่ากันจะให้ W/cell ต่ำกว่ามาก');
+  }
+
+  if(msgs.length){
+    el.style.display='block';
+    el.innerHTML=msgs.join('<hr style="border:none;border-top:1px solid rgba(214,69,69,.25);margin:8px 0;">');
+  } else { el.style.display='none'; }
+}
+
+function renderAll(){
+  const i=read(), r=core(i);
+  renderSys(i); renderLoad(i,r); renderWcell(i,r);
+  renderFeas(i,r);
+  renderVAvgHint(i);
+  renderCheck(i,r); renderAh(i,r); renderWhatIf(i,r);
+  renderFinal(i,r); ladder(i);
+}
+
+function renderSys(i){
+  const uv=i.cellsPerUnit*NOM_VCELL;
+  document.getElementById('sysResults').innerHTML=
+    stat('DC Bus (nominal)',pos(i.dcBus,0),'V','hi')+
+    stat('Cell รวม ต่อ 1 String',pos(i.cells,0),'cells')+
+    stat('ก้อน '+uv+'V ต่อ String',pos(i.units,0),'units')+
+    stat('ก้อนทั้งหมด (ทุก String)',pos(i.units*i.strings,0),'units')+
+    stat('DC ที่ Cutoff',pos(i.cutoff*i.cells,1),'V');
+
+  document.getElementById('sysNote').textContent=i.split
+    ?'สาย 3 เส้น: +'+fmt(i.dcBus/2,0)+'V / N (0V) / −'+fmt(i.dcBus/2,0)+'V — Inverter 3-Level NPC'
+    :'สาย 2 เส้น: +'+fmt(i.dcBus,0)+'V / 0V — Inverter 2-Level ผ่านหม้อแปลง';
+
+  const w=document.getElementById('sysWarn');
+  if(i.split && i.units>0 && i.units%2!==0){
+    w.style.display='block';
+    w.innerHTML='⚠️ โหมด <b>Split (3 สาย)</b> แต่จำนวนก้อน ('+i.units+') เป็น<b>เลขคี่</b> → สองฝั่งไม่เท่ากัน จุด Neutral ไม่อยู่กึ่งกลาง ควรใช้จำนวนคู่';
+  } else { w.style.display='none'; }
+}
+
+function renderLoad(i,r){
+  document.getElementById('loadResults').innerHTML=
+    stat('P (AC out)',pos(r.pAc,2),'kW')+
+    stat('P (DC จากแบต)',pos(r.pDc,2),'kW','hi')+
+    stat('กระแสสูงสุด @ Cutoff',pos(r.iMax,1),'A/string — sizing สายไฟ')+
+    stat('กระแสเฉลี่ย @ '+fmt(i.vAvg,2)+'V/cell',pos(r.iAvg,1),'A/string');
+}
+
+function renderWcell(i,r){
+  document.getElementById('wcellResults').innerHTML=
+    stat('★ W/cell ที่ต้องการ',pos(r.wCell,2),'W/cell','hi')+
+    stat('เทียบเป็น',pos(r.wBlock,1),'W/ก้อน '+(i.cellsPerUnit*NOM_VCELL)+'V','ok')+
+    stat('P (DC จากแบต)',pos(r.pDc,2),'kW')+
+    stat('เงื่อนไขเปิดตาราง',(i.cutoff>0?fmt(i.cutoff,2):'—')+' V/cell','@ '+pos(i.tMin,0)+' นาที');
+}
+
+function renderCheck(i,r){
+  const wb=num('candWblock');
+  let wc=num('candWcell');
+  if(!(wc>0)&&wb>0&&i.cellsPerUnit>0) wc=wb/i.cellsPerUnit;
+
+  const el=document.getElementById('checkVerdict');
+  const res=document.getElementById('checkResults');
+
+  if(!(wc>0)||!(r.wCell>0)){
+    res.innerHTML='';
+    el.className='note';
+    el.textContent='กรอก W/cell (หรือ W/block) จาก Datasheet เพื่อตรวจสอบ — และกรอกข้อ 1-2 ให้ครบก่อน';
+    return;
+  }
+
+  const ratio=wc/r.wCell;
+  const head=(ratio-1)*100;
+  const ok=ratio>=1;
+
+  res.innerHTML=
+    stat('ต้องการ',fmt(r.wCell,2),'W/cell')+
+    stat('Datasheet ให้',fmt(wc,2),'W/cell')+
+    stat('Headroom',(head>=0?'+':'')+fmt(head,1),'%',ok?'ok':'bad')+
+    stat('ผลตัดสิน',ok?'ผ่าน ✓':'ไม่ผ่าน ✗',null,ok?'ok':'bad');
+
+  const name=txt('candName')||'รุ่นที่เลือก';
+  let msg;
+  if(!ok){
+    msg='❌ <b>'+name+' ไม่ผ่าน</b> — Datasheet ให้ '+fmt(wc,2)+' W/cell แต่ต้องการ '+fmt(r.wCell,2)+' W/cell (ขาด '+fmt(Math.abs(head),1)+'%)'+
+        '<br>ทางแก้: ① ขยับรุ่นใหญ่ขึ้น ② เปลี่ยนเป็นแบต <b>High-Rate (HR series)</b> ③ เพิ่ม String ขนาน ④ เพิ่มจำนวน Cell ต่อ String';
+  } else if(head < 25){
+    msg='⚠️ <b>'+name+' ผ่านแบบเฉียดฉิว</b> — เกินมาแค่ '+fmt(head,1)+'% '+
+        '<br>ตัวเลข Datasheet เป็นสเปก<b>แบตใหม่ที่ 25°C</b> ปลายอายุความจุเหลือ ~80% และห้องที่เย็นกว่า 25°C ก็ลดอีก — headroom ระดับนี้<b>อาจไม่พอถึงปลายอายุ</b> พิจารณารุ่นถัดไป';
+  } else if(head > 60){
+    msg='✅ <b>'+name+' ผ่าน</b> — headroom +'+fmt(head,1)+'% '+
+        '<br>💡 headroom เกิน 60% อาจ over-size ลองดูรุ่นเล็กลงหนึ่งขั้นเพื่อประหยัดต้นทุน';
+  } else {
+    msg='✅ <b>'+name+' ผ่าน</b> — Datasheet ให้ '+fmt(wc,2)+' W/cell ≥ ที่ต้องการ '+fmt(r.wCell,2)+' W/cell (headroom +'+fmt(head,1)+'%) ซึ่งเป็นระดับที่เหมาะสม';
+  }
+  el.className='note '+(ok?(head<25?'warn':'good'):'warn');
+  el.innerHTML=msg;
+}
+
+function renderAh(i,r){
+  document.getElementById('ahResults').innerHTML=
+    stat('Ah ที่ต้องจ่ายออกจริง',pos(r.ahOut,2),'Ah/string')+
+    stat('Ah ที่ป้าย (÷ f)',pos(r.ahRated,2),'Ah/string','hi')+
+    stat('รุ่นมาตรฐานใกล้เคียง',pos(r.ahStd,0),'Ah — ไปหยิบ Datasheet รุ่นนี้')+
+    stat('Capacity factor (f)',i.f>0?fmt(i.f,3):'—','ต้องมาจาก Datasheet');
+
+  const sd=i.strings>1?(' ÷ '+i.strings+' string'):'';
+  document.getElementById('ahStepsBody').innerHTML=
+    '<tr><td><b>I<sub>avg</sub> = P ÷ (V<sub>avg</sub> × cells × strings)</b></td>'+
+      '<td>'+pos(r.P,0)+'W ÷ ('+fmt(i.vAvg,2)+'V × '+pos(i.cells,0)+' cells'+sd+')</td>'+
+      '<td><b>'+pos(r.iAvg,2)+' A</b></td></tr>'+
+    '<tr><td><b>Ah<sub>out</sub> = I<sub>avg</sub> × t</b></td>'+
+      '<td>'+pos(r.iAvg,2)+'A × '+pos(r.tH,3)+' ชม.</td>'+
+      '<td><b>'+pos(r.ahOut,2)+' Ah</b></td></tr>'+
+    '<tr><td><b>Ah<sub>rated</sub> = Ah<sub>out</sub> ÷ f</b></td>'+
+      '<td>'+pos(r.ahOut,2)+' Ah ÷ '+(i.f>0?fmt(i.f,3):'—')+'</td>'+
+      '<td><b>'+pos(r.ahRated,2)+' Ah</b></td></tr>';
+}
+
+function scen(label,i,ov,base){
+  const rr=core(Object.assign({},i,ov));
+  const pct=base>0?((rr.wCell-base)/base*100):0;
+  const isBase=label.indexOf('Base')===0;
+  const cls=pct<-0.5?'delta-down':(pct>0.5?'delta-up':'');
+  const ar =pct<-0.5?'▼':(pct>0.5?'▲':'—');
+  return '<tr'+(isBase?' class="base"':'')+'>'+
+    '<td style="font-family:var(--body)">'+label+'</td>'+
+    '<td>'+pos(rr.wCell,2)+' W/cell</td>'+
+    '<td class="'+cls+'">'+(isBase?'—':ar+' '+fmt(Math.abs(pct),1)+'%')+'</td></tr>';
+}
+
+function renderWhatIf(i,r){
+  const b=r.wCell;
+  const u12=Math.round(i.units*1.2);
+  document.getElementById('whatIfBody').innerHTML=[
+    scen('Base (ค่าปัจจุบัน)',i,{},b),
+    scen('โหลด kVA +10%',i,{kva:i.kva*1.10},b),
+    scen('Power Factor +0.05',i,{pf:Math.min(1,i.pf+0.05)},b),
+    scen('Inverter Efficiency −3 จุด',i,{eff:Math.max(1,i.eff-3)},b),
+    scen('เพิ่มก้อนต่อ String +20%',i,{units:u12,cells:u12*i.cellsPerUnit},b),
+    scen('เพิ่ม String ขนาน +1',i,{strings:i.strings+1},b),
+    scen('โหลดเต็มพิกัด PF = 1.0',i,{pf:1.0},b),
+  ].join('');
+}
+
+function renderFinal(i,r){
+  document.getElementById('finalSummary').innerHTML=
+    '<div class="kv"><span>DC Bus</span><b>'+pos(i.dcBus,0)+' V</b></div>'+
+    '<div class="kv"><span>Cell / String</span><b>'+pos(i.cells,0)+'</b></div>'+
+    '<div class="kv"><span>ก้อนทั้งหมด</span><b>'+pos(i.units*i.strings,0)+'</b></div>'+
+    '<div class="kv"><span>P (DC)</span><b>'+pos(r.pDc,2)+' kW</b></div>'+
+    '<div class="kv" style="background:var(--navy-tint);margin:4px -6px;padding:6px;border-radius:6px;"><span><b>★ W/cell</b></span><b>'+pos(r.wCell,2)+'</b></div>'+
+    '<div class="kv"><span>= W/ก้อน</span><b>'+pos(r.wBlock,1)+'</b></div>'+
+    '<div class="kv"><span>กระแสสูงสุด</span><b>'+pos(r.iMax,1)+' A</b></div>'+
+    '<div class="kv"><span>Ah (เดารุ่น)</span><b>'+pos(r.ahRated,1)+' Ah</b></div>';
+}
+
+function ladder(i){
+  const L=document.getElementById('ladder'),G=document.getElementById('ladderLegend');
+  const total=Math.max(2,i.units||2),half=Math.round(total/2);
+  let h='';
+  for(let n=0;n<total;n++){
+    if(i.split&&n===half) h+='<div class="seg tap" title="Neutral"></div>';
+    h+='<div class="seg '+((i.split&&n>=half)?'bench-b':'bench-a')+'"></div>';
+  }
+  L.innerHTML=h;
+  const uv=i.cellsPerUnit*NOM_VCELL;
+  G.innerHTML=i.split
+    ?'<div class="li"><span class="dot" style="background:#3D6EA5"></span> ฝั่ง + : <b>'+Math.floor(i.units/2)+'</b> ก้อน (+'+pos(i.dcBus/2,0)+'V)</div>'+
+     '<div class="li"><span class="dot" style="background:#0F2540"></span> จุด N (0V)</div>'+
+     '<div class="li"><span class="dot" style="background:#D9773F"></span> ฝั่ง − : <b>'+Math.ceil(i.units/2)+'</b> ก้อน (−'+pos(i.dcBus/2,0)+'V)</div>'
+    :'<div class="li"><span class="dot" style="background:#3D6EA5"></span> String เดียว : <b>'+pos(i.units,0)+'</b> ก้อน '+uv+'V</div>'+
+     '<div class="li">0V ถึง +'+pos(i.dcBus,0)+'V — ใช้หม้อแปลงสร้าง Neutral</div>';
+}
+
+/* ---------- f-finder ---------- */
+function calcF(){
+  const rated=num('ff_rated'),amp=num('ff_amp'),min=num('ff_min');
+  const el=document.getElementById('ff_result');
+  if(rated>0&&amp>0&&min>0){
+    const f=(amp*(min/60))/rated;
+    if(isFinite(f)&&f>0&&f<=1.5){ el.textContent=fmt(f,3); el.dataset.value=f.toFixed(3); return; }
+  }
+  el.textContent='—'; delete el.dataset.value;
+}
+function applyF(){
+  const el=document.getElementById('ff_result');
+  if(!el.dataset.value) return;
+  document.getElementById('capFactor').value=el.dataset.value;
+  renderAll();
+}
+
+/* ---------- wiring ---------- */
+['battType','numUnits','numStrings','splitMode',
+ 'loadKva','pf','invEff','targetMin','cutoffVcell',
+ 'candName','candWcell','candWblock',
+ 'vAvg','capFactor','ratedLabel'].forEach(id=>{
+  const e=document.getElementById(id);
+  e.addEventListener('input',renderAll);
+  e.addEventListener('change',renderAll);
+});
+['ff_rated','ff_amp','ff_min'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calcF);
+});
+
+renderAll();
+</script>
+
+</body>
+</html>

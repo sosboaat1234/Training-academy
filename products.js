@@ -151,6 +151,7 @@ const PRODUCTS = [
     docs:[
       {title:"UPS Lithium Battery — Components & Troubleshooting", url:"https://drive.google.com/file/d/1AgArN8t3jQpURR7frvYHQ-uiEyzko1Kx/view?usp=sharing"},
     ],
+    tools:[{title:"เครื่องคำนวณแบตเตอรี่ UPS (Battery Calculator)", url:"ups-battery-calculator-v22.html"}],
     quizLink:"#",
   },
   { id:"dynamicups", icon:"battery", color:"var(--amber-500)", eyebrow:"UPS",
