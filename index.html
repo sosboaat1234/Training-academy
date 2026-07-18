@@ -392,12 +392,12 @@ const CAT_ORDER = [["ONBOARDING","เริ่มต้น"],["POWER","ระบ
 const passed = {};                 // สถานะ "เรียนจบ" รายบท (โหลดจาก localStorage รายคน)
 const getProduct = id => PRODUCTS.find(p=>p.id===id);
 const PLACEHOLDER_VIDEO = "ScMzIvxBSi4";              // วิดีโอตัวอย่าง = ถือว่ายังไม่มีคลิปจริง
-const hasVideo = p => p.videoId && p.videoId !== PLACEHOLDER_VIDEO;
+const hasVideo = p => (p.videoId && p.videoId !== PLACEHOLDER_VIDEO) || (p.videos && p.videos.length>0);
 const hasQuiz  = p => p.quizLink && p.quizLink !== "#";
 const isReady  = p => hasVideo(p) || hasQuiz(p) || (p.docs && p.docs.length>0) || !!p.demo || (p.tools && p.tools.length>0);
 
-function videoEmbed(p){
-  const v = (p.videoId || p.video || "").trim();
+function embedUrl(raw){
+  const v = (raw || "").trim();
   if(v.includes("drive.google.com")){
     const m = v.match(/\/d\/([^/]+)/) || v.match(/[?&]id=([^&]+)/);
     if(m) return "https://drive.google.com/file/d/"+m[1]+"/preview";
@@ -405,6 +405,9 @@ function videoEmbed(p){
   const yt = v.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/);
   const id = yt ? yt[1] : v;
   return "https://www.youtube.com/embed/"+id;
+}
+function videoEmbed(p){
+  return embedUrl(p.videoId || p.video || "");
 }
 
 /* ----- จำความคืบหน้ารายคน (เก็บใน localStorage ผูกกับอีเมล) ----- */
@@ -588,7 +591,14 @@ function renderContent(){
   const p = getProduct(currentId);
   const idx = PRODUCTS.findIndex(x=>x.id===currentId);
   const prev = PRODUCTS[idx-1], next = PRODUCTS[idx+1];
-  const videoCard = hasVideo(p)
+  const videoCard = (p.videos && p.videos.length)
+    ? `<div class="card">
+        <h3 class="section-title">${svg("play")} วิดีโอ</h3>
+        ${p.videos.map((v,i)=>`
+        <div class="video-wrap"${i>0?' style="margin-top:16px"':''}><iframe src="${embedUrl(v.videoId||v.video||"")}" title="วิดีโอสอน ${p.name} ${i+1}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+        <div class="video-meta"><span class="pill">MODULE</span> ${v.title ? v.title : "หลักสูตร "+p.name+" ตอนที่ "+(i+1)}</div>`).join("")}
+      </div>`
+    : hasVideo(p)
     ? `<div class="card">
         <h3 class="section-title">${svg("play")} วิดีโอ</h3>
         <div class="video-wrap"><iframe src="${videoEmbed(p)}" title="วิดีโอสอน ${p.name}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>

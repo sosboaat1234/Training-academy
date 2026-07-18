@@ -19,7 +19,10 @@ const PRODUCTS = [
     name:"Generator", tagline:"เครื่องกำเนิดไฟฟ้าสำรอง",
     description:"เครื่องกำเนิดไฟฟ้าสำรองสำหรับ Data Center จ่ายไฟเมื่อไฟหลักดับเป็นเวลานาน เพื่อให้ระบบทำงานต่อเนื่องไม่สะดุด",
     howto:["ตรวจระดับน้ำมันเชื้อเพลิงและแบตเตอรี่สตาร์ท","ทดสอบเดินเครื่อง (Test Run) ตามรอบ","ตรวจระบบระบายความร้อนและไอเสีย"],
-    videoId:"ScMzIvxBSi4",
+    videos:[
+      {title:"ตอนที่ 1", videoId:"https://drive.google.com/file/d/1NlOe8bwMRhTMwVzfq5w0dKyccfN9t9jg/view?usp=sharing"},
+      {title:"ตอนที่ 2", videoId:"https://drive.google.com/file/d/1zqW2oHxMqP6AXS88RVoYCHHKRLUXnAR4/view?usp=sharing"},
+    ],
     docs:[
       {title:"Diesel Generator", url:"https://drive.google.com/file/d/1RjpPSaMVWbkX6vnpQefVF2g7kdHpenYT/view?usp=sharing"},
     ],
