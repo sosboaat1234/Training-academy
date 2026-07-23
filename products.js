@@ -25,6 +25,8 @@ const PRODUCTS = [
     ],
     docs:[
       {title:"Diesel Generator", url:"https://drive.google.com/file/d/1RjpPSaMVWbkX6vnpQefVF2g7kdHpenYT/view?usp=sharing"},
+      {title:"เอกสารเทรนนิ่ง Generator (1)", url:"https://drive.google.com/file/d/1X1ZU7sXaE5mMbd49_sUYtM8KWROtwEco/view?usp=sharing"},
+      {title:"เอกสารเทรนนิ่ง Generator (2)", url:"https://drive.google.com/file/d/14IKfI_3gqZFhofUlNOXGsRWskuyk4I1s/view?usp=sharing"},
     ],
     tools:[{title:"เครื่องคำนวณน้ำมันเชื้อเพลิง Genset (Fuel Calculator)", url:"genset-fuel-calculator.html"}],
     quizLink:"#",
