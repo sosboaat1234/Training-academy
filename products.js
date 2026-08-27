@@ -407,6 +407,7 @@ const PRODUCTS = [
       {title:"Wiring Diagram", url:"https://drive.google.com/file/d/1OjKPHPK2Xg7lUYhigz5SEJsYZ-eWWMd8/view?usp=drive_link"},
       {title:"Service Manual", url:"https://drive.google.com/file/d/1_BW_W0naer6k4cN_2itLCoSGAslKT9O7/view?usp=drive_link"},
       {title:"Installation Manual", url:"https://drive.google.com/file/d/1mxU9nvCoZld5PoRHpGxxAVDBdlJ02UBY/view?usp=drive_link"},
+      {title:"เอกสารเพิ่มเติม", url:"https://drive.google.com/file/d/1d1wVXAo7un-e7OVZIzlTEdXqC42WywXr/view?usp=drive_link"},
     ],
     quizLink:"#",
   },
