@@ -138,9 +138,9 @@ const PRODUCTS = [
     name:"Battery", tagline:"แบตเตอรี่สำรอง",
     description:"แบตเตอรี่สำรองสำหรับระบบ UPS ทั้งแบบตะกั่วกรด (VRLA) และลิเธียม เลือกให้เหมาะกับเวลาสำรองไฟและพื้นที่",
     howto:["เลือกชนิดและความจุแบตให้ตรงความต้องการ","ติดตั้งในที่ระบายอากาศและอุณหภูมิเหมาะสม","ตรวจสภาพและเปลี่ยนตามอายุการใช้งาน"],
-    videoId:"ScMzIvxBSi4",
+    videoId:"https://drive.google.com/file/d/1k3BfJfg0hDOhhhQz7GCybdUflF16uPuu/view?usp=drive_link",
     docs:[
-      {title:"UPS Lithium Battery — Components & Troubleshooting", url:"https://drive.google.com/file/d/1AgArN8t3jQpURR7frvYHQ-uiEyzko1Kx/view?usp=sharing"},
+      {title:"เอกสารประกอบการเรียน (Presentation)", url:"https://docs.google.com/presentation/d/1MVsU0Wp3IGVpAelXz7NiDozb4J2UmJ5c/edit?usp=drive_link&ouid=105644458285414703089&rtpof=true&sd=true"},
     ],
     tools:[{title:"เครื่องคำนวณแบตเตอรี่ UPS (Battery Calculator)", url:"ups-battery-calculator-v22.html"}],
     quizLink:"#",
@@ -309,9 +309,10 @@ const PRODUCTS = [
     name:"Water Mist", tagline:"HI-FOG — มาตรฐาน NFPA 750",
     description:"ระบบดับเพลิงด้วยหมอกน้ำแรงดันสูง (Water Mist / HI-FOG) ใช้น้ำปริมาณน้อยแต่ดับไฟได้อย่างมีประสิทธิภาพและปลอดภัยต่ออุปกรณ์ ตามมาตรฐาน NFPA 750",
     howto:["เข้าใจหลักการหมอกน้ำ (Water Mist)","ตรวจสอบและตั้งค่า Pre-action Valve","ทดสอบระบบและซ้อมแผนตอบสนอง"],
-    videoId:"ScMzIvxBSi4",
+    videoId:"https://drive.google.com/file/d/1Ug_cFddCK5O40JP7YO4nkDUJAWDPuDhp/view",
     docs:[
       {title:"Marioff EPU Customer Training", url:"https://drive.google.com/file/d/1IYMyFAKkvtmXv3doNHgaD1pI4S0JAlIY/view?usp=sharing"},
+      {title:"เอกสารประกอบ — Water Mist HI-FOG", url:"https://drive.google.com/file/d/1x2JGakuDW_LThuaYAGe9JUqFL0QqqAPV/view"},
     ],
     quizLink:"#",
   },
