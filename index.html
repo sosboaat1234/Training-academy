@@ -384,6 +384,7 @@ const ICONS = {
 const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
 
 /* ============================================================ 3) STATE + HELPERS ============================================================ */
+const APP_VERSION = "2026.08.31";  // เวอร์ชันเว็บ — แก้เลขนี้ทุกครั้งที่อัปไฟล์ขึ้นจริง เพื่อเช็กว่าเว็บที่เห็นเป็นเวอร์ชันล่าสุดหรือยัง
 const LIBRARY_URL = "https://forworkbyarm.github.io/LibraryByArm/";  // ลิงก์คลังเอกสาร
 let currentId = PRODUCTS[0].id;
 let inLibrary = false;
@@ -548,7 +549,7 @@ function showHome(){
     <div class="stack fade-in">
       <div class="dash-hero">
         <div class="hi">
-          <div class="eyebrow">SITEM ACADEMY</div>
+          <div class="eyebrow">SITEM ACADEMY <span style="opacity:.65;font-weight:400;">· v${APP_VERSION}</span></div>
           <h2>สวัสดี, ${esc(name)} 👋</h2>
           <p>คุณเรียนจบแล้ว ${done} จาก ${total} หลักสูตร — มาเรียนต่อกันเลย</p>
           <button class="btn" onclick="selectProduct('${firstTodo.id}')">${svg("arrow")} เรียนต่อ: ${firstTodo.name}</button>
