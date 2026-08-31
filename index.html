@@ -193,22 +193,6 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .open-q-item p{margin:0 0 12px;color:var(--text-strong);font-size:15px;line-height:1.65;}
 .open-q-hint{font-size:12.5px;color:var(--text-muted);margin-top:8px;}
 
-/* ============================================================ 5) RESPONSIVE ============================================================ */
-@media(max-width:880px){
-  .hamb{display:inline-flex;}
-  .sidebar{position:fixed;top:0;left:0;width:248px;height:100vh;z-index:55;transform:translateX(-100%);transition:transform var(--dur-base);box-shadow:var(--shadow-lg);}
-  .sidebar.open{transform:translateX(0);}
-  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:54;}
-  .topbar{padding:0 14px;gap:10px;}
-  .page-title{display:none;}
-  .search{max-width:none;}
-  .who b,.who span{display:none;}
-  .content{padding:18px 14px 40px;}
-  .product-head h2{font-size:22px;}
-  .login-card{max-width:100%;}
-  .dash-hero{padding:20px;}
-  .dash-hero .ring2{width:80px;height:80px;margin-left:0;}
-}
 /* เมนูจัดกลุ่มหมวด */
 .nav-group{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:0;cursor:pointer;font-family:inherit;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan-300);font-weight:700;padding:12px 10px 4px;}
 .nav-group:first-child{padding-top:2px;}
@@ -258,6 +242,23 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .nav-recent-label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600;padding:8px 10px 3px;display:flex;align-items:center;gap:5px;}
 .nav-recent-label svg{width:13px;height:13px;}
 .nav-recent-divider{height:1px;background:rgba(255,255,255,.1);margin:6px 10px 2px;}
+
+/* ============================================================ 5) RESPONSIVE (ต้องอยู่ท้ายสุดของ CSS เสมอ — ไม่งั้นกฎข้างล่างที่ specificity เท่ากันจะแย่งชนะ) ============================================================ */
+@media(max-width:880px){
+  .hamb{display:inline-flex;}
+  .sidebar{position:fixed;top:0;left:0;width:248px;height:100vh;z-index:55;transform:translateX(-100%);transition:transform var(--dur-base);box-shadow:var(--shadow-lg);}
+  .sidebar.open{transform:translateX(0);}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:54;}
+  .topbar{padding:0 14px;gap:10px;}
+  .page-title{display:none;}
+  .search{max-width:none;}
+  .who b,.who span{display:none;}
+  .content{padding:18px 14px 40px;}
+  .product-head h2{font-size:22px;}
+  .login-card{max-width:100%;}
+  .dash-hero{padding:20px;}
+  .dash-hero .ring2{width:80px;height:80px;margin-left:0;}
+}
 </style>
 </head>
 
@@ -384,7 +385,7 @@ const ICONS = {
 const svg = (name,fill="none")=>`<svg viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
 
 /* ============================================================ 3) STATE + HELPERS ============================================================ */
-const APP_VERSION = "2026.08.31";  // เวอร์ชันเว็บ — แก้เลขนี้ทุกครั้งที่อัปไฟล์ขึ้นจริง เพื่อเช็กว่าเว็บที่เห็นเป็นเวอร์ชันล่าสุดหรือยัง
+const APP_VERSION = "1.1";  // เวอร์ชันเว็บ — เพิ่มเลขนี้ทุกครั้งที่อัปไฟล์ขึ้นจริง (เช่น 1.1 -> 1.2) เพื่อเช็กว่าเว็บที่เห็นเป็นเวอร์ชันล่าสุดหรือยัง
 const LIBRARY_URL = "https://forworkbyarm.github.io/LibraryByArm/";  // ลิงก์คลังเอกสาร
 let currentId = PRODUCTS[0].id;
 let inLibrary = false;
