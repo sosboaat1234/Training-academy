@@ -105,9 +105,10 @@ const PRODUCTS = [
       "ตั้งค่า SNMP Card และ EPO เชื่อมกับระบบ Monitoring",
       "PM ทุก 6 เดือน: ตรวจ/วัดแรงดันแบตเตอรี่รายเซลล์, ทดสอบ Transfer to Bypass",
     ],
-    videoId:"https://drive.google.com/file/d/1yH7zstkQrmFHIHVgob6WqR_Sa70vfP5s/view?usp=sharing",
+    videoId:"https://drive.google.com/file/d/1jGp8KKSfJohiXzd2mb8urTT5_DvSmIRl/view?usp=sharing",
     docs:[
       {title:"สไลด์ Riello Sentryum", url:"https://drive.google.com/file/d/14U7X0QKZBtSRtsY0ZLRhb9sMjisfNDG7/view?usp=sharing"},
+      {title:"สไลด์ Riello Sentryum (ใหม่)", url:"https://drive.google.com/file/d/1rVjojFtz8lxwyM9jKxOgmW1yhJ_72ApN/view?usp=drive_link"},
     ],
     openQ:[
       {q:"การเปลี่ยนบอร์ด Control ของ Riello Sentryum มีขั้นตอนอย่างไร? ต้องเตรียมอะไรบ้างก่อนเปลี่ยน และควรระวังอะไรขณะทำงาน?"},
