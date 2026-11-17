@@ -139,7 +139,7 @@ const PRODUCTS = [
     name:"Battery", tagline:"แบตเตอรี่สำรอง",
     description:"แบตเตอรี่สำรองสำหรับระบบ UPS ทั้งแบบตะกั่วกรด (VRLA) และลิเธียม เลือกให้เหมาะกับเวลาสำรองไฟและพื้นที่",
     howto:["เลือกชนิดและความจุแบตให้ตรงความต้องการ","ติดตั้งในที่ระบายอากาศและอุณหภูมิเหมาะสม","ตรวจสภาพและเปลี่ยนตามอายุการใช้งาน"],
-    videoId:"https://drive.google.com/file/d/1k3BfJfg0hDOhhhQz7GCybdUflF16uPuu/view?usp=drive_link",
+    videoId:"https://drive.google.com/file/d/1k3BfJfg0hDOhhhQz7GCybdUflF16uPuu/view?usp=sharing",
     docs:[
       {title:"เอกสารประกอบการเรียน (Presentation)", url:"https://docs.google.com/presentation/d/1MVsU0Wp3IGVpAelXz7NiDozb4J2UmJ5c/edit?usp=drive_link&ouid=105644458285414703089&rtpof=true&sd=true"},
     ],
@@ -273,7 +273,7 @@ const PRODUCTS = [
     name:"J1000", tagline:"ระบบมอนิเตอร์ J1000",
     description:"ระบบมอนิเตอร์ J1000 เฝ้าระวังสถานะอุปกรณ์และสภาพแวดล้อมภายใน Data Center แบบเรียลไทม์",
     howto:["เชื่อมต่ออุปกรณ์เข้าระบบ J1000","ตั้งค่าจุดมอนิเตอร์และการแจ้งเตือน","ตรวจสอบและติดตามสถานะการทำงาน"],
-    videoId:"https://drive.google.com/file/d/1v1ordbd0jMmUFlyeHihi6SuVfCrnpj7b/view?usp=drive_link",
+    videoId:"https://drive.google.com/file/d/1v1ordbd0jMmUFlyeHihi6SuVfCrnpj7b/view?usp=sharing",
     docs:[
       {title:"เอกสารประกอบการเรียน J1000", url:"https://drive.google.com/file/d/1gXqqiquUlU59dRhnXIWqu6yTyb1puBe1/view?usp=drive_link"},
     ],
@@ -424,7 +424,7 @@ const PRODUCTS = [
     name:"Revolving Door", tagline:"ประตูหมุน",
     description:"ประตูหมุนควบคุมการเข้าออก ป้องกัน Tailgating และช่วยรักษาสภาพแวดล้อมภายในอาคาร (อุณหภูมิ/ฝุ่น)",
     howto:["เลือกขนาดและชนิดประตูหมุน","ติดตั้งและเชื่อมระบบควบคุมการเข้าออก","ตรวจสอบความปลอดภัยและเซนเซอร์กันหนีบ"],
-    videoId:"https://drive.google.com/file/d/1oYkQYY6W2eZn856vGSh7hbV1zj1HFYp9/view?usp=drive_link",
+    videoId:"https://drive.google.com/file/d/1oYkQYY6W2eZn856vGSh7hbV1zj1HFYp9/view?usp=sharing",
     docs:[
       {title:"Wiring Diagram", url:"https://drive.google.com/file/d/1OjKPHPK2Xg7lUYhigz5SEJsYZ-eWWMd8/view?usp=drive_link"},
       {title:"Service Manual", url:"https://drive.google.com/file/d/1_BW_W0naer6k4cN_2itLCoSGAslKT9O7/view?usp=drive_link"},
